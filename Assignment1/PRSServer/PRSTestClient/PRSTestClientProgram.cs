@@ -14,6 +14,7 @@ using System.Threading;
 using System.Net;
 using System.Net.Sockets;
 using PRSLib;
+using System.Text;
 
 namespace PRSTestClient
 {
@@ -48,10 +49,31 @@ namespace PRSTestClient
             Console.WriteLine();
 
             // create the socket for sending messages to the server
-            PRS.Socket clientSocket = new PRSSocket();
+            Socket clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             // construct the server's address and port
+            try
+            {
+                // Connect to the server
+                clientSocket.Connect(new IPEndPoint(IPAddress.Parse(SERVER_IP), SERVER_PORT));
+                Console.WriteLine("Connected to server.");
 
+                // Send a message
+                SendMessage(clientSocket, new IPEndPoint(IPAddress.Parse(SERVER_IP), SERVER_PORT), new PRSMessage(PRSMessage.MESSAGE_TYPE.REQUEST_PORT, "SVC1", 0, PRSMessage.STATUS.SUCCESS));
+
+                // Receive a response
+                byte[] buffer = new byte[1024];
+                int bytesReceived = clientSocket.Receive(buffer);
+                Console.WriteLine("Received: " + Encoding.UTF8.GetString(buffer, 0, bytesReceived));
+
+                // Close the socket
+                clientSocket.Shutdown(SocketShutdown.Both);
+                clientSocket.Close();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: " + ex.Message);
+            }
             //
             // Implement test cases
             //
