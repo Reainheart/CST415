@@ -48,9 +48,10 @@ namespace PRSTestClient
             Console.WriteLine();
 
             // create the socket for sending messages to the server
-            
+            PRS.Socket clientSocket = new PRSSocket();
+
             // construct the server's address and port
-            
+
             //
             // Implement test cases
             //

@@ -40,7 +40,10 @@ namespace PRSServer
                 {
                     // TODO: PortReservation.Expired()
                     // return true if timeout secons have elapsed since lastAlive
-
+                    if (lastAlive.AddSeconds(timeout) == DateTime.Now)
+                    {
+                        return true;
+                    }
                     return false;
                 }
 
@@ -48,18 +51,31 @@ namespace PRSServer
                 {
                     // TODO: PortReservation.Reserve()
                     // reserve this port for serviceName
+                    if (available)
+                    {
+                        this.serviceName = serviceName;
+                        available = false;
+                        lastAlive = DateTime.Now;
+                    }
                 }
 
                 public void KeepAlive()
                 {
                     // TODO: PortReservation.KeepAlive()
                     // save current time in lastAlive
+                    lastAlive = DateTime.Now;
                 }
 
                 public void Close()
                 {
                     // TODO: PortReservation.Close()
                     // make this reservation available
+                    if (!available)
+                    {
+                        this.serviceName = "";
+                        available = true;
+                        lastAlive = DateTime.Now;
+                    }
                 }
             }
 
@@ -76,11 +92,18 @@ namespace PRSServer
                 // TODO: PRS.PRS()
                 
                 // save parameters
-                
+                this.startingClientPort = startingClientPort;
+                this.endingClientPort = endingClientPort;
+                this.keepAliveTimeout = keepAliveTimeout;
+
                 // initialize to not stopped
-                
+                this.stopped = false;
+
                 // initialize port reservations
-                
+                for (ushort i = startingClientPort; i <= endingClientPort; i++)
+                {
+                    ports.Prepend(new PortReservation(i));
+                }
             }
 
             public bool Stopped { get { return stopped; } }
@@ -89,7 +112,13 @@ namespace PRSServer
             {
                 // TODO: PRS.CheckForExpiredPorts()
                 // expire any ports that have not been kept alive
-
+                foreach (PortReservation port in ports)
+                {
+                    if (port.Expired(keepAliveTimeout))
+                    {
+                        port.Close();
+                    }
+                }
             }
 
             private PRSMessage RequestPort(string serviceName)
