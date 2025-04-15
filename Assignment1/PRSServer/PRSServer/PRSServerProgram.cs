@@ -154,6 +154,8 @@ namespace PRSServer
                     case PRSMessage.MESSAGE_TYPE.REQUEST_PORT:
                         {
                             // check for expired ports and send requested report
+                            CheckForExpiredPorts();
+                            response = RequestPort(msg.ServiceName);
                         }
                         break;
 
@@ -161,16 +163,41 @@ namespace PRSServer
                         {
                             // client has requested that we keep their port alive
                             // find the port
-                            // if found, keep it alive and send SUCCESS
-                            // else, SERVICE_NOT_FOUND
+                            if (ports[msg.Port].Available)
+                            {
+                                // port is available, send SERVICE_NOT_FOUND
+                                response = new PRSMessage(PRSMessage.MESSAGE_TYPE.RESPONSE, msg.ServiceName, msg.Port, PRSMessage.STATUS.SERVICE_NOT_FOUND);
+                            }
+                            else
+                            {
+                                // port is not available, keep it alive and send SUCCESS
+                                ports[msg.Port].KeepAlive();
+                                response = new PRSMessage(PRSMessage.MESSAGE_TYPE.RESPONSE, msg.ServiceName, msg.Port, PRSMessage.STATUS.SUCCESS);
+                                // if found, keep it alive and send SUCCESS
+                                // else, SERVICE_NOT_FOUND
+                            }
+                            break;
                         }
-                        break;
 
                     case PRSMessage.MESSAGE_TYPE.CLOSE_PORT:
                         {
                             // client has requested that we close their port, and make it available for others!
                             // find the port
+                            if (ports[msg.Port].Available)
+                            {
+                                // port is available, send SERVICE_NOT_FOUND
+                                response = new PRSMessage(PRSMessage.MESSAGE_TYPE.RESPONSE, msg.ServiceName, msg.Port, PRSMessage.STATUS.SERVICE_NOT_FOUND);
+                            }
+                            else
+                            {
+                                // port is not available, keep it alive and send SUCCESS
+                                ports[msg.Port].KeepAlive();
+                                response = new PRSMessage(PRSMessage.MESSAGE_TYPE.RESPONSE, msg.ServiceName, msg.Port, PRSMessage.STATUS.SUCCESS);
+                                // if found, keep it alive and send SUCCESS
+                                // else, SERVICE_NOT_FOUND
+                            }
                             // if found, close it and send SUCCESS
+
                             // else, SERVICE_NOT_FOUND
                         }
                         break;
@@ -179,8 +206,21 @@ namespace PRSServer
                         {
                             // client wants to know the reserved port number for a named service
                             // find the port
+                            foreach (PortReservation port in ports)
+                            {
+                                if (port.ServiceName == msg.ServiceName)
+                                {
+                                    // found the port, send it back
+                                    response = new PRSMessage(PRSMessage.MESSAGE_TYPE.RESPONSE, msg.ServiceName, port.Port, PRSMessage.STATUS.SUCCESS);
+                                    break;
+                                }
+                            }
                             // if found, send port number back
                             // else, SERVICE_NOT_FOUND
+                            if (response == null)
+                            {
+                                response = new PRSMessage(PRSMessage.MESSAGE_TYPE.RESPONSE, msg.ServiceName, 0, PRSMessage.STATUS.SERVICE_NOT_FOUND);
+                            }
                         }
                         break;
 
@@ -303,7 +343,7 @@ namespace PRSServer
             }
 
             // close the listening socket
-
+            serverSocket.Close();
             // wait for a keypress from the user before closing the console window
             Console.WriteLine("Press Enter to exit");
             Console.ReadKey();

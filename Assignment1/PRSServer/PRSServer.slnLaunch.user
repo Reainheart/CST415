@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "PRSServer & TestClient",
+    "Projects": [
+      {
+        "Path": "PRSServer\\PRSServer.csproj",
+        "Action": "StartWithoutDebugging"
+      },
+      {
+        "Path": "PRSTestClient\\PRSTestClient.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]
