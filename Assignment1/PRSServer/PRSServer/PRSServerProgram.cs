@@ -69,12 +69,9 @@ namespace PRSServer
 
                 public void Close()
                 {
-                    if (!available)
-                    {
-                        serviceName = string.Empty;
-                        available = true;
-                        lastAlive = DateTime.MinValue;
-                    }
+                    serviceName = string.Empty;
+                    available = true;
+                    lastAlive = DateTime.MinValue;
                 }
             }
 
@@ -86,23 +83,24 @@ namespace PRSServer
             private PortReservation[] ports;
             private bool stopped;
 
-            public PRS(ushort startingClientPort, ushort endingClientPort, int keepAliveTimeout, int kEEP_ALIVE_TIMEOUT)
+            public PRS(ushort ServicePort, ushort startingClientPort, ushort endingClientPort, int kEEP_ALIVE_TIMEOUT)
             {
                 // TODO: PRS.PRS()
 
                 // save parameters
                 this.startingClientPort = startingClientPort;
                 this.endingClientPort = endingClientPort;
-                this.keepAliveTimeout = keepAliveTimeout;
+                this.keepAliveTimeout = kEEP_ALIVE_TIMEOUT;
 
                 // initialize to not stopped
                 this.stopped = false;
 
                 // initialize port reservations
-                ports = new PortReservation[endingClientPort - startingClientPort + 1];
-                for (ushort i = startingClientPort; i <= endingClientPort; i++)
+                numPorts = endingClientPort - startingClientPort + 1;
+                ports = new PortReservation[numPorts];
+                for (ushort i = 0; i < numPorts; i++)
                 {
-                    ports.Prepend(new PortReservation(i));
+                    ports[i] = (new PortReservation((ushort)(startingClientPort+i)));
                 }
             }
 
@@ -121,12 +119,10 @@ namespace PRSServer
                 }
             }
 
-            private PRSMessage RequestPort(string serviceName)
+            private PRSMessage RequestAvaliablePort(string serviceName)
             {
-                // TODO: PRS.RequestPort()
-
                 // client has requested the lowest available port, so find it!
-                for (int i = this.startingClientPort; i < this.endingClientPort; i++)
+                for (int i = 0; i < numPorts; i++)
                 {
                     // if found an avialable port, reserve it and send SUCCESS
                     if (ports[i].Available)
@@ -136,9 +132,14 @@ namespace PRSServer
                         return new PRSMessage(PRSMessage.MESSAGE_TYPE.RESPONSE, serviceName, ports[i].Port, PRSMessage.STATUS.SUCCESS);
                     }
                 }
-
                 // else, none available, send ALL_PORTS_BUSY
                 return new PRSMessage(PRSMessage.MESSAGE_TYPE.RESPONSE, serviceName, 0, PRSMessage.STATUS.ALL_PORTS_BUSY);
+            }
+
+            private PRSMessage RequestPort(string serviceName)
+            {
+                // TODO: PRS.RequestPort()
+                return RequestAvaliablePort(serviceName);
             }
 
             public PRSMessage HandleMessage(PRSMessage msg)
@@ -163,42 +164,46 @@ namespace PRSServer
                         {
                             // client has requested that we keep their port alive
                             // find the port
-                            if (ports[msg.Port].Available)
+                            var portEntry = ports.FirstOrDefault(p => p.Port == msg.Port);
+
+                            if (portEntry != null && portEntry.Available)
                             {
                                 // port is available, send SERVICE_NOT_FOUND
                                 response = new PRSMessage(PRSMessage.MESSAGE_TYPE.RESPONSE, msg.ServiceName, msg.Port, PRSMessage.STATUS.SERVICE_NOT_FOUND);
                             }
-                            else
+                            else if (portEntry != null)
                             {
                                 // port is not available, keep it alive and send SUCCESS
-                                ports[msg.Port].KeepAlive();
+                                portEntry.KeepAlive();
                                 response = new PRSMessage(PRSMessage.MESSAGE_TYPE.RESPONSE, msg.ServiceName, msg.Port, PRSMessage.STATUS.SUCCESS);
-                                // if found, keep it alive and send SUCCESS
-                                // else, SERVICE_NOT_FOUND
+                            }
+                            else
+                            {
+                                // port not found at all, send SERVICE_NOT_FOUND
+                                response = new PRSMessage(PRSMessage.MESSAGE_TYPE.RESPONSE, msg.ServiceName, msg.Port, PRSMessage.STATUS.SERVICE_NOT_FOUND);
                             }
                             break;
+
                         }
 
                     case PRSMessage.MESSAGE_TYPE.CLOSE_PORT:
                         {
                             // client has requested that we close their port, and make it available for others!
                             // find the port
-                            if (ports[msg.Port].Available)
+                            var portEntry = ports.FirstOrDefault(p => p.Port == msg.Port);
+
+                            if (portEntry.Available || portEntry.Port == 0)
                             {
-                                // port is available, send SERVICE_NOT_FOUND
+                                // port doesn't exist or is already available — send SERVICE_NOT_FOUND
                                 response = new PRSMessage(PRSMessage.MESSAGE_TYPE.RESPONSE, msg.ServiceName, msg.Port, PRSMessage.STATUS.SERVICE_NOT_FOUND);
                             }
                             else
                             {
-                                // port is not available, keep it alive and send SUCCESS
-                                ports[msg.Port].KeepAlive();
+                                // port is in use — release it and send SUCCESS
+                                portEntry.Close();
                                 response = new PRSMessage(PRSMessage.MESSAGE_TYPE.RESPONSE, msg.ServiceName, msg.Port, PRSMessage.STATUS.SUCCESS);
-                                // if found, keep it alive and send SUCCESS
-                                // else, SERVICE_NOT_FOUND
                             }
-                            // if found, close it and send SUCCESS
 
-                            // else, SERVICE_NOT_FOUND
                         }
                         break;
 
