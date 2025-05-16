@@ -105,12 +105,12 @@ namespace PRSServer
 
             private void CheckForExpiredPorts()
             {
-                // TODO: PRS.CheckForExpiredPorts()
-                // expire any ports that have not been kept alive
+                // Go through each port and expire it if necessary
                 foreach (PortReservation port in ports)
                 {
-                    if (port.Expired(keepAliveTimeout) && !port.Available)
+                    if (!port.Available && port.Expired(keepAliveTimeout))
                     {
+                        Console.WriteLine($"[INFO] Expiring service '{port.ServiceName}' on port {port.Port} due to timeout.");
                         port.Close();
                     }
                 }
@@ -135,15 +135,30 @@ namespace PRSServer
 
             private PRSMessage RequestPort(string serviceName)
             {
-                // TODO: PRS.RequestPort()
+                // Check if this service is already registered
+                for (int i = 0; i < numPorts; i++)
+                {
+                    if (!ports[i].Available && ports[i].ServiceName == serviceName)
+                    {
+                        // Service already using a port — reject the request
+                        return new PRSMessage(
+                            PRSMessage.MESSAGE_TYPE.RESPONSE,
+                            serviceName,
+                            ports[i].Port,
+                            PRSMessage.STATUS.SERVICE_IN_USE
+                        );
+                    }
+                }
+
                 return RequestAvaliablePort(serviceName);
             }
 
             public PRSMessage HandleMessage(PRSMessage msg)
             {
                 // TODO: PRS.HandleMessage()
-
+                CheckForExpiredPorts();
                 // handle one message and return a response
+                Console.WriteLine($"{DateTime.Now}: Received {msg.MsgType} from {msg.ServiceName} on port {msg.Port}");
 
                 PRSMessage response = null;
 
@@ -168,7 +183,7 @@ namespace PRSServer
                                 // port is available, send SERVICE_NOT_FOUND
                                 response = new PRSMessage(PRSMessage.MESSAGE_TYPE.RESPONSE, msg.ServiceName, msg.Port, PRSMessage.STATUS.SERVICE_NOT_FOUND);
                             }
-                            else if (portEntry != null)
+                            else if (portEntry != null && portEntry.ServiceName == msg.ServiceName)
                             {
                                 // port is not available, keep it alive and send SUCCESS
                                 portEntry.KeepAlive();
@@ -189,14 +204,25 @@ namespace PRSServer
                             // find the port
                             var portEntry = ports.FirstOrDefault(p => p.Port == msg.Port);
 
-                            if (portEntry.Available || portEntry.Port == 0)
+                            if (portEntry == null)
+                            {
+                                return new PRSMessage(PRSMessage.MESSAGE_TYPE.RESPONSE, msg.ServiceName, msg.Port, PRSMessage.STATUS.SERVICE_NOT_FOUND);
+                            }
+
+                            if (portEntry.Available || portEntry.Port == 0 || portEntry == null)
                             {
                                 // port doesn't exist or is already available — send SERVICE_NOT_FOUND
                                 response = new PRSMessage(PRSMessage.MESSAGE_TYPE.RESPONSE, msg.ServiceName, msg.Port, PRSMessage.STATUS.SERVICE_NOT_FOUND);
                             }
+                            else if (portEntry.ServiceName == msg.ServiceName)
+                            {
+                                // port is in use, close it and send SUCCESS
+                                portEntry.Close();
+                                response = new PRSMessage(PRSMessage.MESSAGE_TYPE.RESPONSE, msg.ServiceName, msg.Port, PRSMessage.STATUS.SUCCESS);
+                            }
                             else
                             {
-                                // port is in use — release it and send SUCCESS
+                                // port is in use — and send SUCCESS
                                 portEntry.Close();
                                 response = new PRSMessage(PRSMessage.MESSAGE_TYPE.RESPONSE, msg.ServiceName, msg.Port, PRSMessage.STATUS.SUCCESS);
                             }
@@ -285,6 +311,7 @@ namespace PRSServer
                         break;
                 }
             }
+
             // check for valid STARTING_CLIENT_PORT and ENDING_CLIENT_PORT
             if (STARTING_CLIENT_PORT > ENDING_CLIENT_PORT)
             {
@@ -336,7 +363,7 @@ namespace PRSServer
                     {
                         try
                         {
-                            PRSMessage errorResponse = new PRSMessage(PRSMessage.MESSAGE_TYPE.RESPONSE, "",SERVER_PORT, PRSMessage.STATUS.UNDEFINED_ERROR);
+                            PRSMessage errorResponse = new PRSMessage(PRSMessage.MESSAGE_TYPE.RESPONSE, "", SERVER_PORT, PRSMessage.STATUS.UNDEFINED_ERROR);
                             errorResponse.SendMessage(serverSocket, serverEndPoint);
                         }
                         catch (Exception sendEx)
