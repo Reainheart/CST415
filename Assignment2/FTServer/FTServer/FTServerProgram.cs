@@ -56,11 +56,11 @@ namespace FTServer
             Console.WriteLine("PRS Port: " + PRS_PORT);
 
 
-            Socket prsSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Udp);
+            Socket prsSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             EndPoint prsEP = new IPEndPoint(IPAddress.Parse(PRS_ADDRESS), PRS_PORT);
+            
             try
             {
-                prsSocket.Bind(prsEP);
                 PRSMessage requestPort = new PRSMessage(PRSMessage.MESSAGE_TYPE.REQUEST_PORT, SERVICE_NAME, FTSERVER_PORT, PRSMessage.STATUS.SUCCESS);
                 requestPort.SendMessage(prsSocket, prsEP);
                 requestPort = PRSMessage.ReceiveMessage(prsSocket, ref prsEP);
@@ -70,9 +70,15 @@ namespace FTServer
                 }else
                 {
                     FTSERVER_PORT = requestPort.Port;
+                    Thread keepAliveThread = new Thread(() => SendKeepAlive(prsSocket, prsEP, SERVICE_NAME, FTSERVER_PORT));
+                    keepAliveThread.IsBackground = true;
+                    keepAliveThread.Start();
+
+
                     FTServer server = new FTServer(FTSERVER_PORT, CLIENT_BACKLOG);
                     server.Start();
                 }
+
             }
             catch (Exception ex)
             {
@@ -87,5 +93,30 @@ namespace FTServer
             Console.WriteLine("Press Enter to exit");
             Console.ReadKey();
         }
+
+        private static void SendKeepAlive(Socket prsSocket, EndPoint prsEP, string serviceName, ushort port)
+        {
+            while (true)
+            {
+                try
+                {
+                    PRSMessage keepAlive = new PRSMessage(
+                        PRSMessage.MESSAGE_TYPE.KEEP_ALIVE,
+                        serviceName,
+                        port,
+                        PRSMessage.STATUS.SUCCESS
+                    );
+                    keepAlive.SendMessage(prsSocket, prsEP);
+                    Console.WriteLine($"[KeepAlive] Sent KEEP_ALIVE for {serviceName}:{port}");
+
+                    Thread.Sleep(5000); // wait 5 seconds
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("[KeepAlive] Error: " + ex.Message);
+                }
+            }
+        }
+
     }
 }

@@ -30,49 +30,27 @@ namespace FTServer
 
         public void Start()
         {
-            // TODO: FTServer.Start()
 
-            // create a listening socket for clients to connect
-            Socket listeningSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            Socket serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            serverSocket.Bind(new IPEndPoint(IPAddress.Any, listeningPort));
+            serverSocket.Listen(clientBacklog);
 
-            // bind to the listening port
-            listeningSocket.Bind(new IPEndPoint(IPAddress.Any, listeningPort));
+            Console.WriteLine($"[FTServer] Listening for client connections on port {listeningPort}...");
 
-            // set the socket to listen for incoming connections
-            listeningSocket.Listen(clientBacklog);
-            Console.WriteLine("FTServer listening on port " + listeningPort);
-            Console.WriteLine("Waiting for incoming connections...");
-
-            // create a socket to connect to the PRS server
-            
-
-            // create an endpoint for the PRS server
-
-            // contact the PRS and lookup port for "FT Server"
-
-
-            // create an endpoint for the FT Server
-
-            // create a socket to listen for incoming connections
-
-            // create a socket to connect to the FT Server
-
-            // create an endpoint for the FT Server
-
-
-
-            // bind to the FT Server port
-            // set the socket to listen
-
-            //bool done = false;
-            //while (!done)
+            bool done = false;
+            while (!done)
             {
+
                 try
                 {
-                    // accept a client connection
-                    
-                    // instantiate connected client to process messages
-                    
+                    // Accept incoming client connection (blocking)
+                    Socket clientSocket = serverSocket.Accept();
+                    Console.WriteLine($"[FTServer] Accepted connection from {clientSocket.RemoteEndPoint}");
+
+                    // Step 3: Handle client in a new thread
+                    Thread clientThread = new Thread(() => HandleClient(clientSocket));
+                    clientThread.Start();
+
                 }
                 catch (Exception ex)
                 {
@@ -83,7 +61,13 @@ namespace FTServer
             }
 
             // close socket and quit
-            
+            serverSocket.Close();
         }
+
+        private void HandleClient(Socket clientSocket)
+        {
+            throw new NotImplementedException();
+        }
+
     }
 }
