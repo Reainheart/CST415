@@ -69,7 +69,7 @@ namespace SDClient
         {
             // TODO: SDClient.Disconnect()
 
-            ValidateConnected();
+            ValidateConnected(); 
 
             // close writer, reader and stream
             writer?.Close();
@@ -83,7 +83,7 @@ namespace SDClient
             // now disconnected
             connected = false;
             Console.WriteLine("Disconnected from SD server.");
-        }
+         }
 
         public void OpenSession()
         {

@@ -83,15 +83,9 @@ namespace SDClient
             try
             {
                 // contact the PRS and lookup port for "SD Server"
-                EndPoint prsEndPoint = new IPEndPoint(IPAddress.Parse(PRSSERVER_IPADDRESS), PSRSERVER_PORT);
-                Socket prsSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-
-                PRSMessage request = new PRSMessage(PRSMessage.MESSAGE_TYPE.LOOKUP_PORT, SDSERVICE_NAME, 0, PRSMessage.STATUS.SUCCESS);
-                request.SendMessage(prsSocket, prsEndPoint);
-
-                PRSMessage response = PRSMessage.ReceiveMessage(prsSocket, ref prsEndPoint);
-                prsSocket.Close();
-
+                PRSClient prsClient = new PRSClient(PRSSERVER_IPADDRESS, PSRSERVER_PORT);
+                PRSMessage response  = prsClient.LookUpPort(SDSERVICE_NAME);
+                
                 if (response.Status != PRSMessage.STATUS.SUCCESS)
                     throw new Exception("PRS lookup failed for service: " + SDSERVICE_NAME);
 

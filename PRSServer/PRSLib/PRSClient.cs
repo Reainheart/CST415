@@ -131,5 +131,19 @@ namespace PRSLib
             socket = null;
             prsEndpoint = null;
         }
+
+        public PRSMessage LookUpPort(string serviceName)
+        {
+            var lookup = new PRSMessage(PRSMessage.MESSAGE_TYPE.LOOKUP_PORT, serviceName, 0, PRSMessage.STATUS.SUCCESS);
+            lock (socketLock)
+            {
+                lookup.SendMessage(socket, prsEndpoint);
+                var response = PRSMessage.ReceiveMessage(socket, ref prsEndpoint);
+                if (response.Status == PRSMessage.STATUS.SUCCESS)
+                    return response;
+                else
+                    throw new Exception("Failed to look up port.");
+            }
+        }
     }
 }

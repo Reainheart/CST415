@@ -30,7 +30,7 @@ namespace SDServer
         private StreamReader reader;
         private StreamWriter writer;
         private Thread clientThread;
-        private SessionTable sessionTable;      // server's session table
+        private readonly SessionTable sessionTable;      // server's session table
         private ulong sessionId;                // session id for this session, once opened or resumed
 
         public SDConnectedClient(Socket clientSocket, SessionTable sessionTable)
@@ -154,16 +154,16 @@ namespace SDServer
             // TODO: SDConnectedClient.HandleOpen()
 
             // handle an "open" request from the client
-
+            
             // if no session currently open, then...
             if (sessionId == 0)
             {
                 try
                 {
                     // ask the SessionTable to open a new session and save the session ID
-                    
+                    sessionTable.OpenSession();
                     // send accepted message, with the new session's ID, to the client
-                    
+                    SendAccepted(sessionId);
                 }
                 catch (SessionException se)
                 {
