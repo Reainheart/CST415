@@ -60,7 +60,7 @@ namespace FTClient
                     PRSMessage response = PRSMessage.ReceiveMessage(prsSocket, ref prsEP);
                     prsSocket.Close();
 
-                    if (response.Status != PRSMessage.STATUS.SUCCESS)
+                    if (response.Status != PRSMessage.STATUS.SUCCESS) 
                         throw new Exception("PRS lookup failed for service: " + ftClientServiceName);
 
                     ftServerPort = response.Port;
@@ -134,34 +134,27 @@ namespace FTClient
 
         private bool ReceiveFile(string directoryName)
         {
-            string fileName = reader.ReadLine();
-            if (fileName == null || fileName == "done")
-                return false;
 
-            if (fileName.StartsWith("error"))
+            BinaryReader binReader = new BinaryReader(stream, Encoding.UTF8, leaveOpen: true);
+
+            try
             {
-                Console.WriteLine("Server error: " + fileName);
+                string fileName = binReader.ReadString();
+                int fileLength = binReader.ReadInt32();
+                byte[] fileContents = binReader.ReadBytes(fileLength);
+
+                string dirPath = Path.Combine(Directory.GetCurrentDirectory(), directoryName);
+                Directory.CreateDirectory(dirPath);
+                string localFilePath = Path.Combine(dirPath, fileName);
+                File.WriteAllBytes(localFilePath, fileContents);
+
+                Console.WriteLine($"Received file: {fileName} ({fileLength} bytes)");
+                return true;
+            }
+            catch (EndOfStreamException)
+            {
                 return false;
             }
-
-            int fileLength = int.Parse(reader.ReadLine());
-            byte[] fileContents = new byte[fileLength];
-            int bytesRead = 0;
-
-            while (bytesRead < fileLength)
-            {
-                int chunk = stream.Read(fileContents, bytesRead, fileLength - bytesRead);
-                if (chunk == 0) break;
-                bytesRead += chunk;
-            }
-
-            string dirPath = Path.Combine(Directory.GetCurrentDirectory(), directoryName);
-            Directory.CreateDirectory(dirPath);
-            string localFilePath = Path.Combine(dirPath, fileName);
-            File.WriteAllBytes(localFilePath, fileContents);
-
-            Console.WriteLine($"Received file: {fileName} ({fileLength} bytes)");
-            return true;
         }
 
         #endregion

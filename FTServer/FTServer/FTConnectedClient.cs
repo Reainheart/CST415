@@ -82,7 +82,7 @@ namespace FTServer
                 while (!done)
                 {
                     // receive a message from the client
-                     string message = reader.ReadLine();
+                    string message = reader.ReadLine();
                     if (message == null)
                     {
                         // Client disconnected 
@@ -103,8 +103,10 @@ namespace FTServer
                         {
                             string fileName = Path.GetFileName(file);
                             byte[] fileBytes = File.ReadAllBytes(file);
-                            SendFileName(fileName, fileBytes.Length);
-                            stream.Write(fileBytes, 0, fileBytes.Length);
+                            BinaryWriter binWriter = new BinaryWriter(stream, Encoding.UTF8, leaveOpen: true);
+                            binWriter.Write(fileName);
+                            binWriter.Write(fileBytes.Length);
+                            binWriter.Write(fileBytes);
                         }
 
                         SendDone();
@@ -144,12 +146,6 @@ namespace FTServer
                 clientSocket?.Close();
             }
 
-        }
-
-        private void SendFileName(string fileName, int fileLength)
-        {
-            writer.WriteLine(fileName);        // match FTClient expectation
-            writer.WriteLine(fileLength.ToString());
         }
 
         private void SendDone()
