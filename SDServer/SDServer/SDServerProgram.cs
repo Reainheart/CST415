@@ -79,7 +79,7 @@ namespace SDServer
                 server.Start();
 
                 // --- Return port to PRS ---
-                prsClient.ClosePort(SERVICE_NAME);
+                prsClient.ClosePort(SERVICE_NAME, PRS_PORT);
             }
             catch (Exception ex)
             {

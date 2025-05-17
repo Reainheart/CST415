@@ -14,8 +14,6 @@
 //
 //-----------------------------------------------------------------------------
 
-
-
 using System;
 using System.Net;
 using System.Net.Sockets;
@@ -32,7 +30,7 @@ namespace PRSLib
         private Task keepAliveTask;
         private readonly object socketLock = new object();
 
-        public PRSClient(string prsAddress, ushort prsPort, string serviceName)
+        public PRSClient(string prsAddress, ushort prsPort)
         {
             prsAddress = prsAddress ?? throw new ArgumentNullException(nameof(prsAddress));
             prsEndpoint = new IPEndPoint(IPAddress.Parse(prsAddress), prsPort);
