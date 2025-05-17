@@ -4,6 +4,9 @@
 // CST 415
 // Fall 2019
 // 
+// Noah Etchemendy
+// CST 415
+// Spring 2025
 
 using System;
 using System.Threading;
@@ -66,6 +69,9 @@ namespace FTServer
         private void HandleClient(Socket clientSocket)
         {
             Console.WriteLine($"[FTServer] Accepted connection from {clientSocket.RemoteEndPoint}");
+            FTConnectedClient client = new FTConnectedClient(clientSocket);
+            Console.WriteLine("[FTServer] Client thread started.");
+            client.Start();
         }
 
     }

@@ -101,8 +101,8 @@ namespace FTClient
                 EndPoint prsEP = new IPEndPoint(IPAddress.Parse(PRSSERVER_IPADDRESS), PSRSERVER_PORT);
 
                 // contact the PRS and lookup port for "FT Server"
-                PRSMessage sendFTMessage = new PRSMessage(PRSMessage.MESSAGE_TYPE.LOOKUP_PORT, FTSERVICE_NAME, 0, PRSMessage.STATUS.SUCCESS);
-                sendFTMessage.SendMessage(prsSocket, prsEP);
+                PRSMessage sendPRSMessage = new PRSMessage(PRSMessage.MESSAGE_TYPE.LOOKUP_PORT, FTSERVICE_NAME, 0, PRSMessage.STATUS.SUCCESS);
+                sendPRSMessage.SendMessage(prsSocket, prsEP);
 
                 // wait for a response from the server
                 PRSMessage response = PRSMessage.ReceiveMessage(prsSocket, ref prsEP);
@@ -117,12 +117,35 @@ namespace FTClient
                     FTSERVER_PORT = response.Port;
                     Console.WriteLine("Received port from server: " + FTSERVER_PORT);
                 }
+                
+                PRSMessage sendftMessage = new PRSMessage(PRSMessage.MESSAGE_TYPE.LOOKUP_PORT, FTSERVICE_NAME, FTSERVER_PORT, PRSMessage.STATUS.SUCCESS);
+                sendftMessage.SendMessage(prsSocket, prsEP);
+                PRSMessage ftResponse = PRSMessage.ReceiveMessage(prsSocket, ref prsEP);
+                if (ftResponse.Status != PRSMessage.STATUS.SUCCESS)
+                {
+                    Console.WriteLine("Failed to get response from server. Status: " + ftResponse.Status);
+                    return;
+                }
+                else
+                {
+                    FTSERVER_PORT = ftResponse.Port;
+                    Console.WriteLine("Received port from server: " + FTSERVER_PORT);
+                }
 
-                // create an FTClient and connect it to the server
-                FTClient fTClient = new FTClient(FTSERVER_IPADDRESS, PRSSERVER_IPADDRESS, PSRSERVER_PORT, FTSERVICE_NAME);
-                fTClient.Connect();
-                // get the contents of the specified directory
-                string[] files = Directory.GetFiles(DIRECTORY_NAME);
+                Console.WriteLine("Connecting to FT Server on port " + FTSERVER_PORT);
+                // create a socket to connect to the FT server
+                Socket ftSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                ftSocket.Connect(new IPEndPoint(IPAddress.Parse(FTSERVER_IPADDRESS), FTSERVER_PORT));
+                Console.WriteLine("Connected to FT Server on port " + FTSERVER_PORT);
+                // create a new FTClient object
+                FTClient ftClient = new FTClient(FTSERVER_IPADDRESS, PRSSERVER_IPADDRESS, PSRSERVER_PORT, FTSERVICE_NAME);
+                // connect to the FT server
+                ftClient.Connect();
+                // send the directory name to the FT server
+                ftClient.GetDirectory(DIRECTORY_NAME);
+
+                ftClient.Disconnect();
+
             }
             catch (SocketException ex)
             {

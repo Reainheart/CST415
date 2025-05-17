@@ -4,6 +4,10 @@
 // CST 415
 // Fall 2019
 // 
+// Noah Etchemendy
+// CST 415
+// Spring 2025
+
 
 using System;
 using System.Text;
@@ -98,9 +102,11 @@ namespace FTServer
                         foreach (string file in files)
                         {
                             string fileName = Path.GetFileName(file);
-                            string fileContents = File.ReadAllText(file);
-                            SendFileName(fileName, fileContents.Length);
-                            SendFileContents(fileContents);
+                            byte[] fileBytes = File.ReadAllBytes(file);
+                            SendFileName(fileName, fileBytes.Length);
+                            stream.Write(fileBytes, 0, fileBytes.Length);
+
+
                         }
 
                         SendDone();
@@ -144,12 +150,9 @@ namespace FTServer
 
         private void SendFileName(string fileName, int fileLength)
         {
-            writer.WriteLine($"file {fileName} {fileLength}");
-        }
+            writer.WriteLine(fileName);        // match FTClient expectation
+            writer.WriteLine(fileLength.ToString());
 
-        private void SendFileContents(string fileContents)
-        {
-            writer.Write(fileContents); // No newline at the end
         }
 
         private void SendDone()

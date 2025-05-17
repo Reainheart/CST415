@@ -5,6 +5,9 @@
 // CST 415
 // Fall 2019
 // 
+// Noah Etchemendy
+// CST 415
+// Spring 2025
 
 using System;
 using System.Text;
@@ -46,6 +49,7 @@ namespace FTClient
             {
                 try
                 {
+
                     // Look up port from PRS
                     EndPoint prsEP = new IPEndPoint(IPAddress.Parse(prsAddress), prsPort);
                     Socket prsSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
