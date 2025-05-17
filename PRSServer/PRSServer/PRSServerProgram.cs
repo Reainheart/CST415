@@ -158,7 +158,7 @@ namespace PRSServer
                 // TODO: PRS.HandleMessage()
                 CheckForExpiredPorts();
                 // handle one message and return a response
-                Console.WriteLine($"{DateTime.Now}: Received {msg.MsgType} from {msg.ServiceName} on port {msg.Port}");
+                //Console.WriteLine($"{DateTime.Now}: Received {msg.MsgType} from {msg.ServiceName} on port {msg.Port}");
 
                 PRSMessage response = null;
 

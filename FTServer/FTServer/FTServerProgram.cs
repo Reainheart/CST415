@@ -63,13 +63,23 @@ namespace FTServer
             {
                 PRSMessage requestPort = new PRSMessage(PRSMessage.MESSAGE_TYPE.REQUEST_PORT, SERVICE_NAME, FTSERVER_PORT, PRSMessage.STATUS.SUCCESS);
                 requestPort.SendMessage(prsSocket, prsEP);
-                requestPort = PRSMessage.ReceiveMessage(prsSocket, ref prsEP);
-                if (requestPort.Status != PRSMessage.STATUS.SUCCESS)
+                PRSMessage response = PRSMessage.ReceiveMessage(prsSocket, ref prsEP);
+                if (response.Status != PRSMessage.STATUS.SUCCESS)
                 {
-                    Console.Write($"{requestPort.Status} : {requestPort.MsgType} : {requestPort.ServiceName}:{requestPort.Port} ");
-                }else
+                    Console.Write($"{requestPort.Status} : {requestPort.MsgType} : {requestPort.ServiceName} : {requestPort.Port}");
+                }else if (response.Status == PRSMessage.STATUS.SERVICE_NOT_FOUND)
                 {
-                    FTSERVER_PORT = requestPort.Port;
+                    Console.WriteLine($"[FTServer] Service not found: {SERVICE_NAME}");
+                    return;
+                }
+                else if (response.Status == PRSMessage.STATUS.SERVICE_IN_USE)
+                {
+                    Console.WriteLine($"[FTServer] Service already registered: {SERVICE_NAME}");
+                    return;
+                }
+                else
+                {
+                    FTSERVER_PORT = response.Port;
                     Thread keepAliveThread = new Thread(() => SendKeepAlive(prsSocket, prsEP, SERVICE_NAME, FTSERVER_PORT));
                     keepAliveThread.IsBackground = true;
                     keepAliveThread.Start();
@@ -107,8 +117,13 @@ namespace FTServer
                         PRSMessage.STATUS.SUCCESS
                     );
                     keepAlive.SendMessage(prsSocket, prsEP);
-                    Console.WriteLine($"[KeepAlive] Sent KEEP_ALIVE for {serviceName}:{port}");
+                    //Console.WriteLine($"[KeepAlive] Sent KEEP_ALIVE for {serviceName}:{port}");
+                    keepAlive = PRSMessage.ReceiveMessage(prsSocket, ref prsEP);
 
+                    if (keepAlive.Status != PRSMessage.STATUS.SUCCESS)
+                    {
+                        Console.WriteLine($"[KeepAlive] Error: {keepAlive.Status}");
+                    }
                     Thread.Sleep(5000); // wait 5 seconds
                 }
                 catch (Exception ex)

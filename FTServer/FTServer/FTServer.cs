@@ -40,7 +40,6 @@ namespace FTServer
             bool done = false;
             while (!done)
             {
-
                 try
                 {
                     // Accept incoming client connection (blocking)
@@ -66,7 +65,7 @@ namespace FTServer
 
         private void HandleClient(Socket clientSocket)
         {
-            throw new NotImplementedException();
+            Console.WriteLine($"[FTServer] Accepted connection from {clientSocket.RemoteEndPoint}");
         }
 
     }

@@ -82,25 +82,23 @@ namespace FTClient
                         DIRECTORY_NAME = args[i + 1];
                     }
                 }
-                // check if the directory exists
-                if (!Directory.Exists(DIRECTORY_NAME))
+                if (DIRECTORY_NAME == null)
                 {
-                    Console.WriteLine("Directory " + DIRECTORY_NAME + " does not exist.");
-                    return;
-                }
-                // check if the directory is empty
-                if (Directory.GetFiles(DIRECTORY_NAME).Length == 0)
-                {
-                    Console.WriteLine("Directory " + DIRECTORY_NAME + " is empty.");
+                    Console.WriteLine("A target directory must be specified.");
                     return;
                 }
 
-                // create a socket to connect to the PRS server
+                if (Directory.Exists(DIRECTORY_NAME))
+                {
+                    Console.WriteLine("Directory " + DIRECTORY_NAME + " already exists.");
+                    return;
+                }
+                Directory.CreateDirectory(DIRECTORY_NAME);
+                Console.WriteLine("Directory " + DIRECTORY_NAME + " created.");
+
+                // create a socket to connect to and endpoint for the PRS server
                 Socket prsSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-
-                // create an endpoint for the PRS server
                 EndPoint prsEP = new IPEndPoint(IPAddress.Parse(PRSSERVER_IPADDRESS), PSRSERVER_PORT);
-
 
                 // contact the PRS and lookup port for "FT Server"
                 PRSMessage sendFTMessage = new PRSMessage(PRSMessage.MESSAGE_TYPE.LOOKUP_PORT, FTSERVICE_NAME, 0, PRSMessage.STATUS.SUCCESS);

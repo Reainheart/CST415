@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FTServer", "FTServer\FTServ
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FTClient", "FTClient\FTClient.csproj", "{AA5EEC15-360B-4ED6-813C-FEFF4B81A8DA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PRSLib", "..\..\Assignment1\PRSServer\PRSLib\PRSLib.csproj", "{7DF7F66B-D68D-4DDD-9326-988B6E6B2ABC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PRSLib", "..\PRSServer\PRSLib\PRSLib.csproj", "{7DF7F66B-D68D-4DDD-9326-988B6E6B2ABC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
