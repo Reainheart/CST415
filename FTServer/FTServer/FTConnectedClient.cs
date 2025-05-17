@@ -98,7 +98,7 @@ namespace FTServer
                             continue;
                         }
 
-                        string[] files = Directory.GetFiles(directory, "*.txt");
+                        string[] files = Directory.GetFiles(directory, "*.*");
                         foreach (string file in files)
                         {
                             string fileName = Path.GetFileName(file);
