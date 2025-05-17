@@ -117,21 +117,6 @@ namespace FTClient
                     FTSERVER_PORT = response.Port;
                     Console.WriteLine("Received port from server: " + FTSERVER_PORT);
                 }
-                
-                PRSMessage sendftMessage = new PRSMessage(PRSMessage.MESSAGE_TYPE.LOOKUP_PORT, FTSERVICE_NAME, FTSERVER_PORT, PRSMessage.STATUS.SUCCESS);
-                sendftMessage.SendMessage(prsSocket, prsEP);
-                PRSMessage ftResponse = PRSMessage.ReceiveMessage(prsSocket, ref prsEP);
-                if (ftResponse.Status != PRSMessage.STATUS.SUCCESS)
-                {
-                    Console.WriteLine("Failed to get response from server. Status: " + ftResponse.Status);
-                    return;
-                }
-                else
-                {
-                    FTSERVER_PORT = ftResponse.Port;
-                    Console.WriteLine("Received port from server: " + FTSERVER_PORT);
-                }
-
                 Console.WriteLine("Connecting to FT Server on port " + FTSERVER_PORT);
                 // create a socket to connect to the FT server
                 Socket ftSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);

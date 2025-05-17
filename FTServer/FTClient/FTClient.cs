@@ -119,8 +119,7 @@ namespace FTClient
 
         private void SendGet(string directoryName)
         {
-            writer.WriteLine("get");
-            writer.WriteLine(directoryName);
+            writer.WriteLine($"get {directoryName}");
         }
 
         private void SendExit()

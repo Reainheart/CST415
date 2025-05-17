@@ -70,8 +70,8 @@ namespace FTServer
         {
             Console.WriteLine($"[FTServer] Accepted connection from {clientSocket.RemoteEndPoint}");
             FTConnectedClient client = new FTConnectedClient(clientSocket);
-            Console.WriteLine("[FTServer] Client thread started.");
             client.Start();
+            Console.WriteLine("[FTServer] Client thread started.");
         }
 
     }

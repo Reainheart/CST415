@@ -82,10 +82,10 @@ namespace FTServer
                 while (!done)
                 {
                     // receive a message from the client
-                    string message = reader.ReadLine();
+                     string message = reader.ReadLine();
                     if (message == null)
                     {
-                        // Client disconnected
+                        // Client disconnected 
                         break;
                     }
 
@@ -105,8 +105,6 @@ namespace FTServer
                             byte[] fileBytes = File.ReadAllBytes(file);
                             SendFileName(fileName, fileBytes.Length);
                             stream.Write(fileBytes, 0, fileBytes.Length);
-
-
                         }
 
                         SendDone();
@@ -152,7 +150,6 @@ namespace FTServer
         {
             writer.WriteLine(fileName);        // match FTClient expectation
             writer.WriteLine(fileLength.ToString());
-
         }
 
         private void SendDone()
