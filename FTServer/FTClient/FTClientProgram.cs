@@ -37,21 +37,21 @@ namespace FTClient
             ushort FTSERVER_PORT = 40000;
             string DIRECTORY_NAME = null;
 
+            // check for command line arguments
+            if (args.Length == 0)
+            {
+                Usage();
+                return;
+            }
+
             // process the command line arguments
             Console.WriteLine("PRS Address: " + PRSSERVER_IPADDRESS);
             Console.WriteLine("PRS Port: " + PSRSERVER_PORT);
             Console.WriteLine("FT Server Address: " + FTSERVER_IPADDRESS);
-            Console.WriteLine("Directory: " + DIRECTORY_NAME);
+
 
             try
             {
-                // check for command line arguments
-                if (args.Length == 0)
-                {
-                    Usage();
-                    return;
-                }
-
                 // parse the command line arguments
                 for (int i = 0; i < args.Length; i++)
                 {
@@ -80,6 +80,7 @@ namespace FTClient
                     else if (args[i] == "-d")
                     {
                         DIRECTORY_NAME = args[i + 1];
+                        Console.WriteLine("Directory: " + DIRECTORY_NAME);
                     }
                 }
                 if (DIRECTORY_NAME == null)
@@ -88,20 +89,21 @@ namespace FTClient
                     return;
                 }
 
-                if (Directory.Exists(DIRECTORY_NAME))
+                if (!Directory.Exists(DIRECTORY_NAME))
                 {
-                    Console.WriteLine("Directory " + DIRECTORY_NAME + " already exists.");
-                    return;
+                    Console.WriteLine("Directory " + DIRECTORY_NAME + " does not exist... Creating");
+                    Directory.CreateDirectory(DIRECTORY_NAME);
+                    Console.WriteLine("Directory " + DIRECTORY_NAME + " created.");
                 }
-                Directory.CreateDirectory(DIRECTORY_NAME);
-                Console.WriteLine("Directory " + DIRECTORY_NAME + " created.");
-
+                
                 // create a socket to connect to and endpoint for the PRS server
                 Socket prsSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
                 EndPoint prsEP = new IPEndPoint(IPAddress.Parse(PRSSERVER_IPADDRESS), PSRSERVER_PORT);
 
                 // contact the PRS and lookup port for "FT Server"
                 PRSMessage sendFTMessage = new PRSMessage(PRSMessage.MESSAGE_TYPE.LOOKUP_PORT, FTSERVICE_NAME, 0, PRSMessage.STATUS.SUCCESS);
+                sendFTMessage.SendMessage(prsSocket, prsEP);
+
                 // wait for a response from the server
                 PRSMessage response = PRSMessage.ReceiveMessage(prsSocket, ref prsEP);
 
@@ -144,3 +146,5 @@ namespace FTClient
         }
     }
 }
+
+
