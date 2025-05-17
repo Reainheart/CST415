@@ -104,34 +104,6 @@ namespace FTServer
             Console.ReadKey();
         }
 
-        private static void SendKeepAlive(Socket prsSocket, EndPoint prsEP, string serviceName, ushort port)
-        {
-            while (true)
-            {
-                try
-                {
-                    PRSMessage keepAlive = new PRSMessage(
-                        PRSMessage.MESSAGE_TYPE.KEEP_ALIVE,
-                        serviceName,
-                        port,
-                        PRSMessage.STATUS.SUCCESS
-                    );
-                    keepAlive.SendMessage(prsSocket, prsEP);
-                    //Console.WriteLine($"[KeepAlive] Sent KEEP_ALIVE for {serviceName}:{port}");
-                    keepAlive = PRSMessage.ReceiveMessage(prsSocket, ref prsEP);
-
-                    if (keepAlive.Status != PRSMessage.STATUS.SUCCESS)
-                    {
-                        Console.WriteLine($"[KeepAlive] Error: {keepAlive.Status}");
-                    }
-                    Thread.Sleep(5000); // wait 5 seconds
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("[KeepAlive] Error: " + ex.Message);
-                }
-            }
-        }
 
     }
 }
