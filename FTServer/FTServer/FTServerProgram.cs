@@ -69,6 +69,7 @@ namespace FTServer
                     Console.Write($"{response.Status} : {response.MsgType} : {response.ServiceName} : {response.Port}");
                 }else if (response.Status == PRSMessage.STATUS.SERVICE_NOT_FOUND)
                 {
+
                     Console.WriteLine($"[FTServer] Service not found: {SERVICE_NAME}");
                     return;
                 }
@@ -80,7 +81,7 @@ namespace FTServer
                 else
                 {
                     FTSERVER_PORT = response.Port;
-                    Thread keepAliveThread = new Thread(() => SendKeepAlive(prsSocket, prsEP, SERVICE_NAME, FTSERVER_PORT));
+                    Thread keepAliveThread = new Thread(() => new PRSClient(PRS_ADDRESS, PRS_PORT).KeepPortAlive(SERVICE_NAME, FTSERVER_PORT));
                     keepAliveThread.IsBackground = true;
                     keepAliveThread.Start();
 

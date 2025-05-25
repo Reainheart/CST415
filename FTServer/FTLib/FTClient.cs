@@ -18,30 +18,19 @@ using PRSLib;
 
 namespace FTLib
 {
-    public class FTClient
+    public class FTClient(string ftServerAddress, string prsAddress, ushort prsPort, string ftClientServiceName)
     {
-        private string ftServerAddress;
+        private string ftServerAddress = ftServerAddress;
         private ushort ftServerPort;
-        private string ftClientServiceName;
-        private string prsAddress;
-        private ushort prsPort;
+        private string ftClientServiceName = ftClientServiceName;
+        private string prsAddress = prsAddress;
+        private ushort prsPort = prsPort;
 
-        public bool connected;
+        public bool connected = false;
         Socket clientSocket;
         NetworkStream stream;
         StreamReader reader;
         StreamWriter writer;
-
-        public FTClient(string ftServerAddress, string prsAddress, ushort prsPort, string ftClientServiceName)
-        {
-            // Save server address and PRS details
-            this.ftServerAddress = ftServerAddress;
-            this.prsAddress = prsAddress;
-            this.prsPort = prsPort;
-            this.ftClientServiceName = ftClientServiceName;
-
-            connected = false;
-        }
 
         public void Connect()
         {
