@@ -45,7 +45,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FTConnectedClient.cs" />
-    <Compile Include="FTServer.cs" />
     <Compile Include="FTServerProgram.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
