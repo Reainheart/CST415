@@ -2,7 +2,6 @@
 // PRSClient.cs
 //
 // Authors: Noah Etchemedy, ChatGPT (OpenAI)
-
 // Course: CST 415 - Programming Languages and Systems
 // Project: Port Reservation Server Client Library
 // Date: [05/17/2025]
@@ -92,7 +91,7 @@ namespace PRSLib
             }, token);
         }
 
-        public void StopKeepAlive()
+        public void StopKeepAlive(string SERVICE_NAME)
         {
             if (cancellationTokenSource != null)
             {
@@ -126,7 +125,7 @@ namespace PRSLib
                     throw new Exception("Failed to close port.");
             }
 
-            StopKeepAlive();
+            StopKeepAlive(serviceName);
             socket.Close();
             socket = null;
             prsEndpoint = null;

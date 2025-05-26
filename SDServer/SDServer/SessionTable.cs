@@ -7,8 +7,7 @@
 // Noah Etchemendy
 // CST 415
 // Spring 2025
-// SD Server Implementation - .NET 9 Console App
-// Attribution: Based on specifications provided in a university-level assignment prompt.
+
 
 using System;
 using System.Collections.Generic;
@@ -32,7 +31,7 @@ namespace SDServer
     /// </summary>
     class SessionTable
     {
-        private readonly object _lock = new object();
+        private object _lock = new object();
         private readonly TimeSpan sessionTimeout = TimeSpan.FromMinutes(30);
         private readonly TimeSpan cleanupInterval = TimeSpan.FromMinutes(5);
         private readonly CancellationTokenSource cleanupTokenSource = new();
@@ -98,9 +97,8 @@ namespace SDServer
         /// allocate and return a new session to the caller
         /// this method should be thread-safe
         /// </summary>
-        public async Task<ulong> OpenSessionAsync()
+        public ulong OpenSession()
         {
-            await Task.Yield(); // Simulate async
             lock (_lock)
             {
                 ulong sessionId = nextSessionId++;
@@ -114,35 +112,35 @@ namespace SDServer
         /// <summary>
         /// returns true only if sessionID is a valid and open sesssion, false otherwise
         /// </summary>
-        public async Task<bool> ResumeSessionAsync(ulong sessionId)
+        public bool ResumeSession(ulong sessionId)
         {
-            await Task.Yield();
+            bool sessionExists = false;
             lock (_lock)
             {
-                return sessions.ContainsKey(sessionId);
+                sessionExists = sessions.ContainsKey(sessionId);
             }
+            return sessionExists;
         }
 
 
         /// <summary>
         ///  closes the session, will no longer be open and cannot be reused
         /// </summary>
-        public async Task CloseSessionAsync(ulong sessionId)
+        public void CloseSession(ulong sessionId)
         {
-            await Task.Yield();
             lock (_lock)
             {
                 if (!sessions.Remove(sessionId))
                     throw new SessionException("Session not found or already closed.");
             }
         }
+
         /// <summary>
         /// retrieves a session value, given session ID and key
         /// returns the value if it exists, or null if it does not
         /// </summary>
-        public async Task<string?> GetSessionValueAsync(ulong sessionId, string key)
+        public string? GetSessionValue(ulong sessionId, string key)
         {
-            await Task.Yield();
             lock (_lock)
             {
                 if (!sessions.TryGetValue(sessionId, out var session))
@@ -159,9 +157,8 @@ namespace SDServer
         /// stores a session value by session ID and key, replaces value if it already exists
         /// throws a session exception if the session is not open
         /// </summary>
-        public async Task PutSessionValueAsync(ulong sessionId, string key, string value)
+        public void PutSessionValue(ulong sessionId, string key, string value)
         {
-            await Task.Yield();
             lock (_lock)
             {
                 if (!sessions.TryGetValue(sessionId, out var session))

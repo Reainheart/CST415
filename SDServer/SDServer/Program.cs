@@ -4,10 +4,7 @@
 // Note: Requires PRS server from Assignment 1
 
 using PRSLib;
-using FTLib;
 using SDLib;
-
-
 
 // defaults
 ushort SDSERVER_PORT = 40000;
@@ -37,25 +34,19 @@ Console.WriteLine($"Connecting to PRS at {PRS_ADDRESS}:{PRS_PORT}...");
 
 SDSERVER_PORT = PRS.RequestPort(SERVICE_NAME);
 Console.WriteLine($"Received port {SDSERVER_PORT} for service '{SERVICE_NAME}'");
+PRS.KeepPortAlive(SERVICE_NAME, SDSERVER_PORT);
 
 try
 {
-    // contact the PRS, request a port for "FT Server" and start keeping it alive
-    Console.WriteLine($"Requesting port for FT Server from PRS at {PRS_ADDRESS}:{PRS_PORT}...");
-    FT_PORT = PRS.RequestPort("FT Server");
-    Console.WriteLine($"Received port {FT_PORT} for FT Server");
-
-    Console.WriteLine("Starting FT Client...");
-    FTClient ftClient = new FTClient(FT_ADDRESS, PRS_ADDRESS, FT_PORT, SERVICE_NAME);
-    ftClient.Connect();
-
     // instantiate SD server and start it running
     Console.WriteLine("Starting SD Server...");
-    SDService sdService = new SDService(SDSERVER_PORT, CLIENT_BACKLOG);
+    SimpleDocumentService sdService = new(SDSERVER_PORT, CLIENT_BACKLOG);
     sdService.Start();
-    
+
+    Console.WriteLine($"SD Server started on port {SDSERVER_PORT} with backlog {CLIENT_BACKLOG}");
+
     // tell the PRS that it can have it's port back, we don't need it anymore
-    
+    PRS.ClosePort(SERVICE_NAME, SDSERVER_PORT);
 }
 catch (Exception ex)
 {
