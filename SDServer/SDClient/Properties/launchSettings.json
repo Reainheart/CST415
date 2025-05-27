@@ -1,0 +1,16 @@
+{
+  "profiles": {
+    "SDClient": {
+      "commandName": "Project",
+      "commandLineArgs": "-o"
+    },
+    "SDClient Resume 1": {
+      "commandName": "Project",
+      "commandLineArgs": "-r 1 -get foo.txt"
+    },
+    "SDClient Resume 2": {
+      "commandName": "Project",
+      "commandLineArgs": "-r 2 -post foo.txt"
+    }
+  }
+}

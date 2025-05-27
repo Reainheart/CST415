@@ -214,13 +214,17 @@ namespace SDServer
             // TODO: SDConnectedClient.HandleClose()
 
             // handle a "close" request from the client
-
+            ulong closeSessionId = ulong.Parse(Reader?.ReadLine());
             // get the sessionId that the client just asked us to close
+            SessionTable.ResumeSession(closeSessionId);
 
             try
             {
                 // close the session in the session table
+                SessionTable.CloseSession(closeSessionId);
+
                 // send closed message back to client
+                Writer.Write("closed\n" + closeSessionId + "\n");
                 // record that this client no longer has an open session
 
             }
@@ -318,7 +322,8 @@ namespace SDServer
             // TODO: SDConnectedClient.SendRejected()
 
             // send rejected message to SD client, including reason for rejection
-
+            Writer?.WriteLine("rejected\n" + reason + "\n");
+            Console.WriteLine($"Sent rejected session request for {reason}.");
         }
 
         private void SendClosed(ulong sessionId)
@@ -326,7 +331,8 @@ namespace SDServer
             // TODO: SDConnectedClient.SendClosed()
 
             // send closed message to SD client, including session id that was just closed
-
+            Writer.Write("closed\n" + sessionId + "\n");
+            Console.WriteLine($"Sent close session request for session ID {sessionId} to SD client."); 
         }
 
         private void SendSuccess()

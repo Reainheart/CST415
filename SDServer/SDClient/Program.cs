@@ -7,8 +7,8 @@ ushort PSRSERVER_PORT = 30000;
 string SERVICE_NAME = "Simple Document (SD) Service";
 string SDSERVER_IPADDRESS = "127.0.0.1";
 ushort SDSERVER_PORT = 40000;
-string SESSION_CMD = "-r";
-ulong SESSION_ID = 1;
+string SESSION_CMD = "";
+ulong SESSION_ID = 0;
 string DOCUMENT_CMD = null;
 string DOCUMENT_NAME = null;
 
@@ -27,19 +27,40 @@ for (int i = 0; i < args.Length; i++)
         SDSERVER_IPADDRESS = parts[0];
         SDSERVER_PORT = ushort.Parse(parts[1]);
     }
-    else if (args[i] == "-s" && i + 1 < args.Length)
+    else if (args[i] == "-o")
     {
-        SESSION_CMD = args[++i];
+        SESSION_CMD = "-o"; // open new session
     }
-    else if (args[i] == "-id" && i + 1 < args.Length)
+    else if (args[i] == "-r" && i + 1 < args.Length)
     {
+        SESSION_CMD = "-r"; // resume existing session
         SESSION_ID = ulong.Parse(args[++i]);
     }
-    else if (args[i] == "-d" && i + 1 < args.Length)
+    else if (args[i] == "-c")
     {
-        DOCUMENT_CMD = args[++i];
+        SESSION_CMD = "-c"; // close session
+        if (i + 1 < args.Length)
+        {
+            SESSION_ID = ulong.Parse(args[++i]);
+        }
+        else
+        {
+            Console.WriteLine("Error: -c requires a session ID argument.");
+            return;
+        }
+    }
+    else if (args[i] == "-get" && i + 1 < args.Length)
+    {
+        DOCUMENT_CMD = "-get"; // get document
         DOCUMENT_NAME = args[++i];
     }
+    else if (args[i] == "-post" && i + 1 < args.Length)
+    {
+        DOCUMENT_CMD = "-post"; // post document
+        DOCUMENT_NAME = args[++i];
+    }
+
+
 }
 Console.WriteLine("PRS Address: " + PRSSERVER_IPADDRESS);
 Console.WriteLine("PRS Port: " + PSRSERVER_PORT);
