@@ -11,7 +11,7 @@ string SESSION_CMD = "";
 ulong SESSION_ID = 0;
 string DOCUMENT_CMD = null;
 string DOCUMENT_NAME = null;
-
+string DOCUMENT_CONTENT = null;
 // process the command line arguments to get the PRS ip address and PRS port number
 for (int i = 0; i < args.Length; i++)
 {
@@ -54,10 +54,11 @@ for (int i = 0; i < args.Length; i++)
         DOCUMENT_CMD = "-get"; // get document
         DOCUMENT_NAME = args[++i];
     }
-    else if (args[i] == "-post" && i + 1 < args.Length)
+    else if (args[i] == "-post" && i + 2 < args.Length)
     {
         DOCUMENT_CMD = "-post"; // post document
         DOCUMENT_NAME = args[++i];
+        DOCUMENT_CONTENT = args[++i];
     }
 
 
@@ -100,23 +101,24 @@ try
     else if (SESSION_CMD == "-c")
     {
         // close existing session
-        sdClient.CloseSession(SESSION_ID);
+        sdClient.CloseSession();
     }
 
     // send document request to server
     if (DOCUMENT_CMD == "-post")
     {
         // read the document contents from stdin
-
+        //string documentContent = Console.In.ReadToEnd(); // read until EOF
         // send the document to the server
-
+        sdClient.PostDocument(DOCUMENT_NAME, DOCUMENT_CONTENT);
     }
     else if (DOCUMENT_CMD == "-get")
     {
         // get document from the server
-
+        string document = sdClient.GetDocument(DOCUMENT_NAME);
         // print out the received document
-
+        Console.WriteLine("Received Document: " + DOCUMENT_NAME);
+        Console.WriteLine(document);
     }
 
     // disconnect from the server

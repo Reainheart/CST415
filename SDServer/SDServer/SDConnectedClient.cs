@@ -188,6 +188,7 @@ namespace SDServer
                     // try to resume the session in the session table
                     // if success, remember the session that we're now using and send accepted to client
                     SessionTable.ResumeSession(resumeSessionId);
+                    sessionId = resumeSessionId;
                     SendAccepted(resumeSessionId);
 
                     // if failed to resume session, send rejectetd to client
@@ -250,11 +251,14 @@ namespace SDServer
                 try
                 {
                     // get the document name from the client
-
+                    string documentName = Reader?.ReadLine() ?? "";
                     // get the document content from the session table
+                    string documentContents = SessionTable.GetSessionValue(sessionId, documentName);
 
                     // send success and document to the client
-
+                    if (documentContents.Length > 0)
+                        SendSuccess(documentName, documentContents);
+                    throw new Exception("Document was empty or does not exist");
                 }
                 catch (SessionException se)
                 {
@@ -284,11 +288,14 @@ namespace SDServer
                 try
                 {
                     // get the document name, content length and contents from the client
-
+                    string documentName = Reader?.ReadLine() ?? "";
+                    int documentLength = int.Parse(Reader?.ReadLine() ?? "0");
+                    string documentContent = ReceiveDocument(documentLength);
                     // put the document into the session
+                    SessionTable.PutSessionValue(sessionId, documentName, documentContent);
 
                     // send success to the client
-
+                    SendSuccess();
                 }
                 catch (SessionException se)
                 {
@@ -312,7 +319,7 @@ namespace SDServer
 
             // send accepted message to SD client, including session id of now open session
 
-            Writer?.WriteLine("accepted\n" + sessionId.ToString() + "\n");
+            Writer?.Write("accepted\n" + sessionId.ToString() + "\n");
             Writer?.Flush(); // ensure the message is sent immediately
             Console.WriteLine($"Sent accepted session request for session ID {sessionId} to SD client.");
         }
@@ -341,7 +348,8 @@ namespace SDServer
 
             // send sucess message to SD client, with no further info
             // NOTE: in response to a post request
-
+            Writer.Write("success\n");
+            Writer.Flush();
         }
 
         private void SendSuccess(string documentName, string documentContent)
@@ -350,6 +358,8 @@ namespace SDServer
 
             // send success message to SD client, including retrieved document name, length and content
             // NOTE: in response to a get request
+            Writer.Write($"success\n{documentName}\n{documentContent.Length}\n{documentContent}\n");
+            Writer.Flush();
 
         }
 
@@ -358,7 +368,7 @@ namespace SDServer
             // TODO: SDConnectedClient.SendError()
 
             // send error message to SD client, including error string
-
+            Writer.Write($"error\n{errorString}\n");
         }
 
         private string ReceiveDocument(int length)
@@ -371,7 +381,22 @@ namespace SDServer
             // read from the reader until we've received the expected number of characters
             // accumulate the characters into a string and return those when we got enough
 
-            return "TODO";
+            StringBuilder sb = new StringBuilder(length);
+            int charToRead = length;
+            while (charToRead > 0)
+            {
+                // read from the reader
+                char[] buffer = new char[charToRead];
+                int charsRead = Reader?.Read(buffer, 0, charToRead) ?? 0;
+                if (charsRead == 0)
+                {
+                    // no more characters to read, break out of the loop
+                    break;
+                }
+                sb.Append(buffer, 0, charsRead);
+                charToRead -= charsRead;
+            }
+            return sb.ToString();
         }
     }
 }

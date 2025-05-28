@@ -4,6 +4,6 @@
     <DebuggerFlavor>ProjectDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup>
-    <ActiveDebugProfile>SDClient Resume 2</ActiveDebugProfile>
+    <ActiveDebugProfile>SDClient Resume 1</ActiveDebugProfile>
   </PropertyGroup>
 </Project>

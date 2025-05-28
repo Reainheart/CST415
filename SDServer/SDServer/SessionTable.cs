@@ -142,7 +142,7 @@ namespace SDServer
         public string? GetSessionValue(ulong sessionId, string key)
         {
             lock (_lock)
-            {
+           {
                 if (!sessions.TryGetValue(sessionId, out var session))
                     throw new SessionException("Session not found or already closed.");
 

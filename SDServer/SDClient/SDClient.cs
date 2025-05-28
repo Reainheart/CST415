@@ -117,21 +117,21 @@ namespace SDClient
             
         }
 
-        public void CloseSession(ulong SESSION_ID)
+        public void CloseSession()
         {
             // TODO: SDClient.CloseSession()
 
             ValidateConnected();
 
             // send close session to the server
-            SendClose(SESSION_ID);
+            SendClose(sessionID);
             // receive server's response, hopefully confirming our sessionId
             ulong returnedID = ReceiveClose();
 
             // check if the returned session ID matches the one we tried to resume
-            if (returnedID != SESSION_ID)
+            if (returnedID != sessionID)
             {
-                throw new Exception($"Server closed session ID {returnedID}, expected {SESSION_ID}.");
+                throw new Exception($"Server closed session ID {returnedID}, expected {sessionID}.");
             }
             else
             {
@@ -186,7 +186,7 @@ namespace SDClient
         {
 
             // send open message to SD server
-            writer?.WriteLine("open\n");
+            writer?.Write("open\n");
             writer?.Flush(); // ensure the message is sent immediately
             Console.WriteLine("Sent open session request to SD server.");
         }
@@ -196,7 +196,7 @@ namespace SDClient
             // TODO: SDClient.SendClose()
 
             // send close message to SD server
-            writer?.WriteLine("close\n" + sessionId + "\n");
+            writer?.Write("close\n" + sessionId + "\n");
             writer?.Flush(); // ensure the message is sent immediately
         }
 
@@ -205,7 +205,7 @@ namespace SDClient
             // TODO: SDClient.SendResume()
 
             // send resume message to SD server
-            writer?.WriteLine("resume\n" + sessionId + "\n");
+            writer?.Write("resume\n" + sessionId + "\n");
             writer?.Flush(); // ensure the message is sent immediately
         }
 
@@ -224,6 +224,7 @@ namespace SDClient
                 {
                     throw new Exception("Expected session ID after 'accepted' response, but got null.");
                 }
+                Console.WriteLine($"Received session ID: {line}");
                 return ulong.Parse(line);
             }
             else if (line == "rejected")
@@ -248,6 +249,8 @@ namespace SDClient
             // TODO: SDClient.SendPost()
 
             // send post message to SD erer, including document name, length and contents
+            writer?.Write("post\n" + documentName + "\n" + documentContents.Length + "\n" + documentContents + "\n");
+            writer?.Flush(); // ensure the message is sent immediately
 
         }
 
@@ -256,6 +259,8 @@ namespace SDClient
             // TODO: SDClient.SendGet()
 
             // send get message to SD server
+            writer?.Write("get\n" + documentName + "\n");
+            writer?.Flush(); // ensure the message is sent immediately
 
         }
         private ulong ReceiveClose()
@@ -290,12 +295,12 @@ namespace SDClient
             if (line == "success")
             {
                 // yay, server accepted our request!
-
+                 
             }
             else if (line == "error")
             {
                 // boo, server sent us an error!
-                throw new Exception("TODO");
+                throw new Exception("Error: "+ line);
             }
             else
             {
@@ -314,14 +319,22 @@ namespace SDClient
                 // yay, server accepted our request!
 
                 // read the document name, content length and content
-
+                string documentName = reader.ReadLine(); // read the document name
+                string lengthLine = reader.ReadLine(); // read the content length
+                if (lengthLine == null)
+                {
+                    throw new Exception("Expected content length after 'success' response, but got null.");
+                }
+                int contentLength = int.Parse(lengthLine); // parse the content length
+                string content = ReceiveDocumentContent(contentLength); // read the content
                 // return the content
-                return "TODO";
+                return content;
             }
             else if (line == "error")
             {
                 // boo, server sent us an error!
-                throw new Exception("TODO");
+                string errorMessage = reader.ReadLine(); // read the error message
+                throw new Exception($"{errorMessage}");
             }
             else
             {
@@ -335,8 +348,19 @@ namespace SDClient
 
             // read from the reader until we've received the expected number of characters
             // accumulate the characters into a string and return those when we received enough
-
-            return "TODO";
+            string content = string.Empty;
+            char[] buffer = new char[length];
+            int bytesRead = 0;
+            while (bytesRead < length) {
+                }
+                int read = reader.Read(buffer, bytesRead, length - bytesRead);
+                if (read == 0)
+                {
+                    throw new Exception("Unexpected end of stream while reading document content.");
+                }
+                bytesRead += read;
+        
+            return content;
         }
     }
 }

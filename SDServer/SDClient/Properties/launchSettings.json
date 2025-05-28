@@ -2,7 +2,7 @@
   "profiles": {
     "SDClient": {
       "commandName": "Project",
-      "commandLineArgs": "-o"
+      "commandLineArgs": "-o -get foo.txt"
     },
     "SDClient Resume 1": {
       "commandName": "Project",
@@ -10,7 +10,7 @@
     },
     "SDClient Resume 2": {
       "commandName": "Project",
-      "commandLineArgs": "-r 2 -post foo.txt"
+      "commandLineArgs": "-r 1 -post foo.txt sometext"
     }
   }
 }
