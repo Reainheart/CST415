@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\PRSServer\PRSLib\PRSLib.csproj" />
-    <ProjectReference Include="..\FTClient\FTClient.csproj" />
+    <ProjectReference Include="..\FTLib\FTLib.csproj" />
   </ItemGroup>
 
   <ItemGroup>

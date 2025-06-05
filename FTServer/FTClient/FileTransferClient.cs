@@ -1,5 +1,5 @@
 ﻿//
-// FTClient.cs
+// FileTransferClient.cs
 //
 // Pete Myers
 // CST 415
@@ -18,7 +18,7 @@ using PRSLib;
 
 namespace FTClient
 {
-    class FTClient
+    class FileTransferClient
     {
         private string ftServerAddress;
         private ushort ftServerPort;
@@ -32,7 +32,7 @@ namespace FTClient
         StreamReader reader;
         StreamWriter writer;
 
-        public FTClient(string ftServerAddress, string prsAddress, ushort prsPort, string ftClientServiceName)
+        public FileTransferClient(string ftServerAddress, string prsAddress, ushort prsPort, string ftClientServiceName)
         {
             // Save server address and PRS details
             this.ftServerAddress = ftServerAddress;

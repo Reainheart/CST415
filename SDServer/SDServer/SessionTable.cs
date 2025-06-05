@@ -15,7 +15,7 @@ using System.Threading;
 
 namespace SDServer
 {
-    class SessionException : Exception
+    public class SessionException : Exception
     {
         public SessionException(string msg) : base(msg)
         {
@@ -29,7 +29,7 @@ namespace SDServer
     /// when the session table is first created, it is empty, with no client session data
     /// client session data is made up of arbitrary key/value pairs, where each are text
     /// </summary>
-    class SessionTable
+    public class SessionTable
     {
         private object _lock = new object();
         private readonly TimeSpan sessionTimeout = TimeSpan.FromMinutes(30);
@@ -58,7 +58,14 @@ namespace SDServer
 
         private Dictionary<ulong, Session> sessions;    // sessionId --> Session instance
         private ulong nextSessionId;                    // next value to use for the next new session
-
+        public SessionTable(TimeSpan SessionTimeout, TimeSpan CleanupInterval)
+        {
+            sessionTimeout= SessionTimeout;
+            cleanupInterval = CleanupInterval;
+            sessions = new Dictionary<ulong, Session>();
+            nextSessionId = 1;
+            Task.Run(SessionCleanupLoop); // Fire and forget
+        }
         public SessionTable()
         {
             sessions = new Dictionary<ulong, Session>();
@@ -176,6 +183,7 @@ namespace SDServer
         public void Dispose()
         {
             cleanupTokenSource.Cancel();
+            cleanupTokenSource.Dispose(); // clean up resources
         }
 
     }

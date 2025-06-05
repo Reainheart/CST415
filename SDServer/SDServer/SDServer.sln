@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PRSLib", "..\..\PRSServer\P
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDClient", "..\SDClient\SDClient.csproj", "{72465233-5A56-485D-B0EE-821846EAE7E0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDServerTests", "..\SDServerTests\SDServerTests.csproj", "{75DE4C33-8E00-48E6-85AA-C312403B4D85}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{72465233-5A56-485D-B0EE-821846EAE7E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{72465233-5A56-485D-B0EE-821846EAE7E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{72465233-5A56-485D-B0EE-821846EAE7E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{75DE4C33-8E00-48E6-85AA-C312403B4D85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{75DE4C33-8E00-48E6-85AA-C312403B4D85}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{75DE4C33-8E00-48E6-85AA-C312403B4D85}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{75DE4C33-8E00-48E6-85AA-C312403B4D85}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

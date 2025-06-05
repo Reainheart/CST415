@@ -22,7 +22,7 @@ namespace FTClient
                 -s <file transfer server IP address>
                 -d <directory requested>
             */
-            Console.WriteLine("Usage: FTClient -d <directory> [-prs <PRS IP>:<PRS port>] [-s <FT Server IP>]");
+            Console.WriteLine("Usage: FileTransferClient -d <directory> [-prs <PRS IP>:<PRS port>] [-s <FT Server IP>]");
         }
 
         static void Main(string[] args)
@@ -122,8 +122,8 @@ namespace FTClient
                 Socket ftSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 ftSocket.Connect(new IPEndPoint(IPAddress.Parse(FTSERVER_IPADDRESS), FTSERVER_PORT));
                 Console.WriteLine("Connected to FT Server on port " + FTSERVER_PORT);
-                // create a new FTClient object
-                FTClient ftClient = new FTClient(FTSERVER_IPADDRESS, PRSSERVER_IPADDRESS, PSRSERVER_PORT, FTSERVICE_NAME);
+                // create a new FileTransferClient object
+                FileTransferClient ftClient = new FileTransferClient(FTSERVER_IPADDRESS, PRSSERVER_IPADDRESS, PSRSERVER_PORT, FTSERVICE_NAME);
                 // connect to the FT server
                 ftClient.Connect();
                 // send the directory name to the FT server

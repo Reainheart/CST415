@@ -44,7 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FTClient.cs" />
+    <Compile Include="FileTransferClient.cs" />
     <Compile Include="FTClientProgram.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -55,6 +55,10 @@
     <ProjectReference Include="..\..\PRSServer\PRSLib\PRSLib.csproj">
       <Project>{7df7f66b-d68d-4ddd-9326-988b6e6b2abc}</Project>
       <Name>PRSLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FTLib\FTLib.csproj">
+      <Project>{f3953e71-a6af-97c7-b361-4dab2224184d}</Project>
+      <Name>FTLib</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

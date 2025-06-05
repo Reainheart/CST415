@@ -249,7 +249,7 @@ namespace SDClient
             // TODO: SDClient.SendPost()
 
             // send post message to SD erer, including document name, length and contents
-            writer?.Write("post\n" + documentName + "\n" + documentContents.Length + "\n" + documentContents + "\n");
+            writer?.Write("post" + "\n" + documentName + "\n" + documentContents.Length + "\n" + documentContents);
             writer?.Flush(); // ensure the message is sent immediately
 
         }
@@ -295,7 +295,7 @@ namespace SDClient
             if (line == "success")
             {
                 // yay, server accepted our request!
-                 
+                
             }
             else if (line == "error")
             {
