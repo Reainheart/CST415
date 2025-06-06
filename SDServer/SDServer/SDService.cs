@@ -64,10 +64,14 @@ namespace SDLib
             Console.WriteLine("Stopping SD Server...");
             try
             {
-                _listener.Disconnect(false);
+                _listener?.Shutdown(SocketShutdown.Both);
+                _listener?.Close();
+                _listener = null;
             }
             catch { }
-            _listener.Close();
+
+            _sessionTable.Dispose();
         }
+
     }
 }

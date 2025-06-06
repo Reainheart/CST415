@@ -62,33 +62,23 @@ namespace SDServer
 
         private void Run()
         {
-            // TODO: SDConnectedClient.Run()
-
-            // this method is executed on the clientThread
-
             try
             {
-                // create network stream, reader and writer over the socket
                 Stream = new NetworkStream(ClientSocket);
                 Reader = new StreamReader(Stream);
-                Writer = new StreamWriter(Stream) { AutoFlush = true};
+                Writer = new StreamWriter(Stream) { AutoFlush = true };
 
-                // process client requests
                 bool done = false;
                 while (!done)
                 {
-                    // receive a message from the client
                     string? msg = Reader?.ReadLine();
                     if (string.IsNullOrEmpty(msg))
                     {
-                        // no message means the client disconnected
-                        // remember that the client will connect and disconnect as desired
                         Console.WriteLine("[" + ClientThread?.ManagedThreadId.ToString() + "] " + "Client disconnected, closing connection.");
-                        done = true; // exit the loop
+                        done = true;
                     }
                     else
                     {
-                        // handle the message
                         Console.WriteLine("[" + ClientThread?.ManagedThreadId.ToString() + "] " + "Received message from client: " + msg);
 
                         switch (msg)
@@ -106,21 +96,19 @@ namespace SDServer
                                 break;
 
                             case "get":
+                                // Let HandleGet read the document name line
                                 HandleGet();
                                 break;
 
                             case "post":
+                                // Let HandlePost read session ID, document name, length, etc.
                                 HandlePost();
                                 break;
 
                             default:
-                                {
-                                    // error handling for an invalid message
-                                    Console.WriteLine("[" + ClientThread.ManagedThreadId.ToString() + "] " + "Received invalid message from client: " + msg);
-                                    // this client is too broken to waste our time on!
-                                    SendError("Invalid message: " + msg);
-                                    done = true; // exit the loop
-                                }
+                                Console.WriteLine("[" + ClientThread.ManagedThreadId.ToString() + "] " + "Received invalid message from client: " + msg);
+                                SendError("Invalid message: " + msg);
+                                done = true;
                                 break;
                         }
                     }
@@ -135,11 +123,15 @@ namespace SDServer
                 Console.WriteLine("[" + ClientThread.ManagedThreadId.ToString() + "] " + "IO Error on client socket, closing connection: " + ioe.Message);
             }
 
-            // close the client's writer, reader, network stream and socket
-            Stream?.Dispose();
-            ClientSocket.Disconnect(false);
-            ClientSocket.Close();
+            try
+            {
+                Stream?.Dispose();
+                ClientSocket?.Shutdown(SocketShutdown.Both);
+                ClientSocket?.Close();
+            }
+            catch { }
         }
+
 
         private void HandleOpen()
         {
@@ -178,7 +170,14 @@ namespace SDServer
             // TODO: SDConnectedClient.HandleResume()
 
             // handle a "resume" request from the client
-            ulong resumeSessionId = ulong.Parse(Reader?.ReadLine()); // initialize sessionId to 0
+            if (!ulong.TryParse(Reader?.ReadLine(), out ulong resumeSessionId))
+            {
+                SendError("Invalid session ID.");
+                return;
+            }
+
+
+
             // get the sessionId that the client just asked us to resume
 
             try
@@ -188,12 +187,18 @@ namespace SDServer
                 {
                     // try to resume the session in the session table
                     // if success, remember the session that we're now using and send accepted to client
-                    SessionTable.ResumeSession(resumeSessionId);
-                    sessionId = resumeSessionId;
-                    SendAccepted(resumeSessionId);
-
-                    // if failed to resume session, send rejectetd to client
-
+                    if (SessionTable.ResumeSession(resumeSessionId))
+                    {
+                        // session resumed successfully
+                        sessionId = resumeSessionId;
+                        SendAccepted(resumeSessionId);
+                    }
+                    else
+                    {
+                        // session resume failed, send rejected to client
+                        SendRejected("Failed to resume session: " + resumeSessionId);
+                        return;
+                    }
                 }
                 else
                 {
@@ -204,10 +209,12 @@ namespace SDServer
             catch (SessionException se)
             {
                 SendError(se.Message);
+                throw; // rethrow the exception to be handled by the caller
             }
             catch (Exception ex)
             {
                 SendError(ex.Message);
+                throw; // rethrow the exception to be handled by the caller
             }
         }
 
@@ -215,7 +222,12 @@ namespace SDServer
         private void HandleClose()
         {
             // get the sessionId that the client just asked us to close
-            ulong closeSessionId = ulong.Parse(Reader?.ReadLine());
+            if (!ulong.TryParse(Reader?.ReadLine(), out ulong resumeSessionId))
+            {
+                SendError("Invalid session ID.");
+                return;
+            }
+
             try
             {
                 // close the session in the session table
@@ -233,24 +245,27 @@ namespace SDServer
             }
         }
 
-        // handle a "get" request from the client
         private void HandleGet()
         {
-            // if the client has a session open
             if (sessionId != 0)
             {
                 try
                 {
-                    // get the document name from the client
                     string documentName = Reader?.ReadLine() ?? "";
-                    // get the document content from the session table
-                    string documentContents = SessionTable.GetSessionValue(sessionId, documentName);
+                    if (string.IsNullOrEmpty(documentName))
+                    {
+                        SendError("No document name provided.");
+                        return;
+                    }
 
-                    // send success and document to the client
+                    string? documentContents = SessionTable?.GetSessionValue(sessionId, documentName);
                     if (string.IsNullOrEmpty(documentContents))
-                        throw new Exception("Document was empty or does not exist");
-                    SendSuccess(documentName, documentContents);
+                    {
+                        SendError("Document was empty or does not exist");
+                        return;
+                    }
 
+                    SendSuccess(documentName, documentContents);
                 }
                 catch (SessionException se)
                 {
@@ -263,53 +278,56 @@ namespace SDServer
             }
             else
             {
-                // error, cannot post without a session
                 SendError("No session open. Cannot perform GET.");
             }
         }
 
+
+        // Client sends:
+        // 2. document name (string)
+        // 3. document length (int)
+        // 4. document content (string of exact length)
+
         private void HandlePost()
         {
-            // TODO: SDConnectedClient.HandlePost()
 
-            // handle a "post" request from the client
-
-            // if the client has a session open
-            if (sessionId != 0)
+            string documentName = Reader?.ReadLine() ?? "";
+            if (string.IsNullOrEmpty(documentName))
             {
-                try
-                {
-                    // get the document name, content length and contents from the client
-                    string documentName = Reader?.ReadLine() ?? "";
-                    int documentLength = int.Parse(Reader?.ReadLine() ?? "0");
-                    if (string.IsNullOrEmpty(documentName) || int.IsNegative(documentLength))
-                    {
-                        SendError("Invalid post request: missing document name or length.");
-                        return;
-                    }
-                    // receive the document content from the client
-                    string documentContent = ReceiveDocument(documentLength);
-                    // put the document into the session
-                    SessionTable.PutSessionValue(sessionId, documentName, documentContent);
-
-                    // send success to the client
-                    SendSuccess();
-                }
-                catch (SessionException se)
-                {
-                    SendError(se.Message);
-                }
-                catch (Exception ex)
-                {
-                    SendError(ex.Message);
-                }
+                SendError("Missing document name.");
+                return;
             }
-            else
+
+            if (!int.TryParse(Reader?.ReadLine(), out int documentLength))
             {
-                // error, cannot post without a session
-                SendError("No session open. Cannot perform POST.");
+                SendError("Invalid document length.");
+                return;
+            }
+
+            string documentContent = ReceiveDocument(documentLength);
+
+            try
+            {
+                if (documentName.StartsWith("/"))
+                {
+                    // Save to file
+                    string filePath = Path.Combine(Environment.CurrentDirectory, documentName.TrimStart('/'));
+                    File.WriteAllText(filePath, documentContent);
+                }
+                else
+                {
+                    // Save to session variable
+                    SessionTable.PutSessionValue(sessionId , documentName, documentContent);
+                }
+
+                SendSuccess();
+            }
+            catch (Exception ex)
+            {
+                SendError("Post failed: " + ex.Message);
             }
         }
+
 
         private void SendAccepted(ulong sessionId)
         {
@@ -317,7 +335,9 @@ namespace SDServer
 
             // send accepted message to SD client, including session id of now open session
 
-            Writer?.Write("accepted\n" + sessionId.ToString() + "\n");
+            Writer?.WriteLine("accepted");
+            Writer?.WriteLine(sessionId.ToString());
+
 
             Console.WriteLine($"Sent accepted session request for session ID {sessionId} to SD client.");
         }
@@ -327,7 +347,9 @@ namespace SDServer
             // TODO: SDConnectedClient.SendRejected()
 
             // send rejected message to SD client, including reason for rejection
-            Writer?.WriteLine("rejected\n" + reason + "\n");
+            Writer?.WriteLine("rejected");
+            Writer?.WriteLine(reason);
+
             Console.WriteLine($"Sent rejected session request for {reason}.");
         }
 
@@ -336,7 +358,9 @@ namespace SDServer
             // TODO: SDConnectedClient.SendClosed()
 
             // send closed message to SD client, including session id that was just closed
-            Writer.Write("closed\n" + sessionId + "\n");
+            Writer?.WriteLine("closed");
+            Writer?.WriteLine(sessionId.ToString());
+
             Console.WriteLine($"Sent close session request for session ID {sessionId} to SD client."); 
         }
 
@@ -346,8 +370,8 @@ namespace SDServer
 
             // send sucess message to SD client, with no further info
             // NOTE: in response to a post request
-            Writer.Write("success\n");
-
+            Writer?.WriteLine("success");
+            Console.WriteLine("Sent success message to SD client for post request.");
         }
 
         private void SendSuccess(string documentName, string documentContent)
@@ -356,9 +380,11 @@ namespace SDServer
 
             // send success message to SD client, including retrieved document name, length and content
             // NOTE: in response to a get request
-            Writer.Write($"success\n{documentName}\n{documentContent.Length}\n{documentContent}\n");
-
-
+            Writer?.WriteLine("success");
+            Writer?.WriteLine(documentName);
+            Writer?.WriteLine(documentContent.Length);
+            Writer?.Write(documentContent);
+            Console.WriteLine($"Sent success message to SD client for get request: {documentName} (length: {documentContent.Length})");
         }
 
         private void SendError(string errorString)
@@ -366,7 +392,8 @@ namespace SDServer
             // TODO: SDConnectedClient.SendError()
 
             // send error message to SD client, including error string
-            Writer.Write($"error\n{errorString}\n");
+            Writer?.WriteLine($"error");
+            Writer?.WriteLine(errorString);
             Console.WriteLine($"Sent error message to SD client: {errorString}");
 
         }

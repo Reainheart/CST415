@@ -110,14 +110,65 @@ namespace SDServerTests
 
             shortTimeoutTable.Dispose();
         }
-    }
 
-    // Helper subclass to allow configurable timeouts for testing
-    class SessionTable_TestableCleanup : SessionTable
-    {
-        public SessionTable_TestableCleanup(TimeSpan timeout, TimeSpan interval)
-            : base(timeout, interval)
+
+        [TestMethod]
+        public void CanOpenAndResumeSession()
         {
+            ulong sessionId = sessionTable.OpenSession();
+            Assert.IsTrue(sessionTable.ResumeSession(sessionId));
+        }
+
+        [TestMethod]
+        public void CannotResumeClosedSession()
+        {
+            ulong sessionId = sessionTable.OpenSession();
+            sessionTable.CloseSession(sessionId);
+            Assert.IsFalse(sessionTable.ResumeSession(sessionId));
+        }
+
+        [TestMethod]
+        public void CanPutAndGetSessionValue()
+        {
+            ulong sessionId = sessionTable.OpenSession();
+            sessionTable.PutSessionValue(sessionId, "foo", "bar");
+            string? value = sessionTable.GetSessionValue(sessionId, "foo");
+            Assert.AreEqual("bar", value);
+        }
+
+        [TestMethod]
+        public void GetMissingSessionValueReturnsNull()
+        {
+            ulong sessionId = sessionTable.OpenSession();
+            string? value = sessionTable.GetSessionValue(sessionId, "missing");
+            Assert.IsNull(value);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(SessionException))]
+        public void GetSessionValueThrowsIfClosed()
+        {
+            ulong sessionId = sessionTable.OpenSession();
+            sessionTable.CloseSession(sessionId);
+            sessionTable.GetSessionValue(sessionId, "foo");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(SessionException))]
+        public void PutSessionValueThrowsIfClosed()
+        {
+            ulong sessionId = sessionTable.OpenSession();
+            sessionTable.CloseSession(sessionId);
+            sessionTable.PutSessionValue(sessionId, "foo", "bar");
+        }
+
+        // Helper subclass to allow configurable timeouts for testing
+        class SessionTable_TestableCleanup : SessionTable
+        {
+            public SessionTable_TestableCleanup(TimeSpan timeout, TimeSpan interval)
+                : base(timeout, interval)
+            {
+            }
         }
     }
 }

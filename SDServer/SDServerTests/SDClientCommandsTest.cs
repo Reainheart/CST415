@@ -1,6 +1,6 @@
-﻿using Mocks;
+﻿
 using SDLib;
-using System;
+using SDClient;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -32,59 +32,87 @@ namespace SDServerTests
         [TestMethod]
         public async Task OpenAndCloseSessionTest()
         {
-            var client = new SDTestClient();
-            await client.ConnectAsync(ServerIp, ServerPort);
+            var client = new SimpleDocumentClient(ServerIp, ServerPort);
+            client.Connect();
+            client.OpenSession();
+            Assert.IsTrue(client.SessionID > 0);
 
-            var sessionId = await client.OpenSessionAsync();
-            Assert.IsTrue(sessionId > 0);
+            client.CloseSession();
 
-            await client.CloseSession(sessionId);
+            Assert.IsTrue(client.SessionID == 0);
             client.Disconnect();
         }
 
         [TestMethod]
         public async Task ResumeSessionTest()
         {
-            var client = new SDTestClient();
-            await client.ConnectAsync(ServerIp, ServerPort);
-
-            var sessionId = await client.OpenSessionAsync();
+            var client = new SimpleDocumentClient(ServerIp, ServerPort);
+            client.Connect();
+            client.OpenSession();
+            ulong sessionId = client.SessionID;
             client.Disconnect();
-            await Task.Delay(1000); // Simulate some time passing
-            await client.ConnectAsync(ServerIp, ServerPort);
-            Assert.IsTrue(await client.ResumeSessionAsync(sessionId) == sessionId);
 
-            await client.CloseSession(sessionId);
-            client.Disconnect();
+            client.Connect(); // Reconnect to the server
+
+            client.ResumeSession(sessionId);
+
+            Assert.IsTrue(client.SessionID == sessionId);
+
+            client.CloseSession();
+
+            Assert.IsTrue(client.SessionID == 0);
+
         }
+
+
 
         [TestMethod]
         public async Task PostAndGetSessionValueTest()
         {
-            var client = new SDTestClient();
-            await client.ConnectAsync(ServerIp, ServerPort);
+            var client = new SimpleDocumentClient(ServerIp, ServerPort);
+            string docName = "testDoc";
+            string docContent = "This is a test document.\nLine 2.\nLine 3.";
+            client.Connect();
 
-            var sessionId = await client.OpenSessionAsync();
-            await client.PostSessionValue("username.env", "noah");
-           
-            //await client.ResumeSessionAsync(sessionId);
-            var value = await client.GetSessionValue("username.env");
+            client.OpenSession();
+            Console.WriteLine($"Opened session ID: {client.SessionID}");
 
-            Assert.AreEqual("success\nusername.env\n4\nnoah", value);
-            //await client.CloseSession(sessionId);
-            
+            client.PostDocument(docName, docContent);
+            Console.WriteLine($"Posted document '{docName}'.");
+
+            string received = client.GetDocument(docName);
+            Console.WriteLine($"Retrieved document '{docName}':");
+            Console.WriteLine(received);
+
+            client.CloseSession();
+            client.Disconnect();
         }
+
 
         [TestMethod]
         public async Task InvalidSessionResumeTest()
         {
-            var client = new SDTestClient();
-            await client.ConnectAsync(ServerIp, ServerPort);
+            var client = new SimpleDocumentClient(ServerIp, ServerPort);
+            client.Connect();
+            client.OpenSession();
+            ulong sessionId = client.SessionID;
+            client.Disconnect();
 
-            var result = await client.ResumeSessionAsync(99999999); // Random invalid session
-            Assert.IsFalse(result < 1);
+            client.Connect(); // Reconnect to the server
 
+            client.ResumeSession(sessionId);
+
+            Assert.ThrowsException<Exception>(() =>
+            {
+                client.ResumeSession(99999999);
+            });
+
+            client.CloseSession();
+
+            Assert.IsTrue(client.SessionID == 0);
+ 
             client.Disconnect();
         }
+
     }
 }

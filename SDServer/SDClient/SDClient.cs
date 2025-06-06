@@ -13,7 +13,7 @@ using System.IO;
 
 namespace SDClient
 {
-    class SimpleDocumentClient (string SDServerAddress, ushort SDServerPort)
+    public class SimpleDocumentClient (string SDServerAddress, ushort SDServerPort)
     {
         private string SDServerAddress = SDServerAddress;
         private ushort SDServerPort = SDServerPort;
@@ -173,13 +173,13 @@ namespace SDClient
         private void ValidateConnected()
         {
             if (!connected)
-                throw new Exception("Connot perform action. Not connected to server!");
+                throw new Exception("Cannot perform action. Not connected to server!");
         }
 
         private void ValidateDisconnected()
         {
             if (connected)
-                throw new Exception("Connot perform action. Already connected to server!");
+                throw new Exception("Cannot perform action. Already connected to server!");
         }
 
         private void SendOpen()
@@ -251,7 +251,7 @@ namespace SDClient
             // send post message to SD erer, including document name, length and contents
             writer?.Write("post" + "\n" + documentName + "\n" + documentContents.Length + "\n" + documentContents);
             writer?.Flush(); // ensure the message is sent immediately
-
+            
         }
 
         private void SendGet(string documentName)
@@ -259,33 +259,36 @@ namespace SDClient
             // TODO: SDClient.SendGet()
 
             // send get message to SD server
-            writer?.Write("get\n" + documentName + "\n");
-            writer?.Flush(); // ensure the message is sent immediately
+            writer.WriteLine("get");
+
+            writer.WriteLine(documentName);
+            writer.Flush();
+
 
         }
         private ulong ReceiveClose()
         {
-            // TODO: SDClient.ReceivePostResponse()
-
-            // get server's response to our last post request
-            string line = reader.ReadLine();
+            // get server's response to our close session request
+            string? line = reader?.ReadLine();
             if (line == "closed")
             {
-                // yay, server accepted our request!
                 line = reader?.ReadLine();
-                return ulong.Parse(line);
+                if (line == null)
+                    throw new Exception("Expected session ID after 'closed', but got null.");
 
+                return ulong.Parse(line);
             }
             else if (line == "error")
             {
-                // boo, server sent us an error!
-                throw new Exception("TODO");
+                string? errorMsg = reader?.ReadLine();
+                throw new Exception("Server error when closing session: " + (errorMsg ?? "unknown error"));
             }
             else
             {
-                throw new Exception("Expected to receive a valid post response, instead got... " + line);
+                throw new Exception("Expected 'closed' or 'error', but got: " + line);
             }
         }
+
         private void ReceivePostResponse()
         {
             // TODO: SDClient.ReceivePostResponse()
@@ -344,23 +347,21 @@ namespace SDClient
 
         private string ReceiveDocumentContent(int length)
         {
-            // TODO: SDClient.ReceiveDocumentContent()
-
-            // read from the reader until we've received the expected number of characters
-            // accumulate the characters into a string and return those when we received enough
-            string content = string.Empty;
             char[] buffer = new char[length];
             int bytesRead = 0;
-            while (bytesRead < length) {
-                }
+
+            while (bytesRead < length)
+            {
                 int read = reader.Read(buffer, bytesRead, length - bytesRead);
                 if (read == 0)
                 {
                     throw new Exception("Unexpected end of stream while reading document content.");
                 }
                 bytesRead += read;
-        
-            return content;
+            }
+
+            return new string(buffer);
         }
+
     }
 }
