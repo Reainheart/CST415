@@ -15,15 +15,12 @@
   <ItemGroup>
     <ProjectReference Include="..\..\PRSServer\PRSLib\PRSLib.csproj" />
     <ProjectReference Include="..\SDClient\SDClient.csproj" />
+    <ProjectReference Include="..\SDLib\SDLib.csproj" />
     <ProjectReference Include="..\SDServer\SDServer.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Mocks\" />
   </ItemGroup>
 
 </Project>

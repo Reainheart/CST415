@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\PRSServer\PRSLib\PRSLib.csproj" />
+    <ProjectReference Include="..\SDLib\SDLib.csproj" />
   </ItemGroup>
 
 </Project>

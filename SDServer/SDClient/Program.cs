@@ -1,5 +1,5 @@
 ﻿using PRSLib;
-using SDClient;
+using SDLib;
 
 // defaults
 string PRSSERVER_IPADDRESS = "127.0.0.1";
