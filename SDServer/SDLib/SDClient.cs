@@ -11,7 +11,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.IO;
 
-namespace SDClient
+namespace SDLib
 {
     public class SimpleDocumentClient (string SDServerAddress, ushort SDServerPort)
     {
