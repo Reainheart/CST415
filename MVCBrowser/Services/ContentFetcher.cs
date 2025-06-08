@@ -22,21 +22,24 @@ namespace SDBrowser
         {
             // TODO: ContentFetcher.ContentFetcher()
             // initially empty protocols dictionary
-            
+            protocols = new Dictionary<string, IProtocolClient>();
         }
 
         public void Close()
         {
             // TODO: ContentFetcher.Close()
             // close each protocol client
-            
+            foreach (var client in protocols.Values)
+            {
+                client.Close();
+            }
         }
 
         public void AddProtocol(string name, IProtocolClient client)
         {
             // TODO: ContentFetcher.AddProtocol()
             // save the protocol client under the given name
-            
+            protocols[name] = client; 
         }
 
         public string Fetch(string address)

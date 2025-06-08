@@ -54,48 +54,62 @@ namespace SDBrowser
 
             // save the PRS server's IP address and port
             // will be used later to lookup the port for the SD Server when needed
-            
+            this.prsIP = prsIP;
+            this.prsPort = prsPort;
 
             // initially empty dictionary of sessions
-            
+            sessions = new Dictionary<string, SDSession>();
         }
 
+
+        /// <summary>
+        /// retrieve requested document from the specified server
+        /// manage the session with the SD Server
+        /// opening or resuming as needed
+        /// connect to and disconnect from the server w/in this method
+        /// </summary>
+        /// <param name="serverIP"></param>
+        /// <param name="documentName"></param>
+        /// <returns></returns>
         public string GetDocument(string serverIP, string documentName)
         {
             // TODO: SDProtocolClient.GetDocument()
-
-            // retrieve requested document from the specified server
-            // manage the session with the SD Server
-            //  opening or resuming as needed
-            // connect to and disconnect from the server w/in this method
 
             // make sure we have valid parameters
             // serverIP is the SD Server's IP address
             // documentName is the name of a docoument on the SD Server
             // both should not be empty
-            
+            if (string.IsNullOrWhiteSpace(serverIP) || string.IsNullOrWhiteSpace(documentName))
+            {
+                throw new ArgumentException("Server IP and document name cannot be empty.");
+            }
 
             // contact the PRS and lookup port for "SD Server"
-            
+            PRSClient prsClient = new PRSClient(prsIP, prsPort);
+            ushort sdPort = prsClient.RequestPort("SD"); // connect to the PRS server
+
 
             // connect to SD server by ipAddr and port
             // use OpenOrResumeSession() to ensure session is handled correctly
-            
+            Socket socket = OpenOrResumeSession(serverIP, sdPort);
+
 
             // create network stream, reader and writer
-            
+            NetworkStream networkStream = new NetworkStream(socket);
+            StreamReader reader = new StreamReader(networkStream, Encoding.UTF8);
+            StreamWriter writer = new StreamWriter(networkStream, Encoding.UTF8) { AutoFlush = true };
 
             // send get message to server for requested document
             
 
             // get the server's response
-            
+
 
             // close writer, reader and network stream
-            
+
 
             // disconnect from server and close the socket
-            
+
 
             // return the content
             return "TODO";
