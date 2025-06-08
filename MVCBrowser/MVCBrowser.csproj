@@ -7,19 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\FTServer\FTLib\FTLib.csproj" />
     <ProjectReference Include="..\SDServer\SDLib\SDLib.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Areas\Home\Controllers\" />
-    <Folder Include="Areas\Home\Data\" />
-    <Folder Include="Areas\Home\Models\" />
-    <Folder Include="Areas\Home\Views\" />
   </ItemGroup>
 
 </Project>

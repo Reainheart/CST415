@@ -1,0 +1,35 @@
+﻿
+@model MVCBrowser.Models.IndexBrowserModel
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <form asp-action="Index" method="post">
+        <div class="row">
+            <div class="col-2">
+                <select asp-for="Protocol" class="form-select">
+                    <option value="SD">SD</option>
+                    <option value="FT">FT</option>
+                </select>
+            </div>
+            <div class="col-3">
+                <input asp-for="Address" class="form-control" placeholder="Enter address" />
+            </div>
+            <div class="col-6">
+                <input asp-for="SearchName" class="form-control" />
+            </div>
+            <div class="col-1">
+                <button type="submit" class="btn btn-success">GO</button>
+            </div>
+        </div>
+    </form>
+
+    @if (Model?.ResultMessage != null)
+    {
+        <div class="alert alert-info mt-3">
+            @Model.ResultMessage
+        </div>
+    }
+</div>
