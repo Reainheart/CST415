@@ -8,12 +8,14 @@
 // CST 415
 // Spring 2025
 // 
-using System;
-using System.Text;
+using FTLib;
 using PRSLib;
+using SDLib;
+using System;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.IO;
+using System.Text;
 
 namespace SDBrowser
 {
@@ -24,15 +26,15 @@ namespace SDBrowser
 
     class FTProtocolClient : IProtocolClient
     {
-        private string prsIP;
-        private ushort prsPort;
+        private string PrsIP;
+        private ushort PrsPort;
 
         public FTProtocolClient(string prsIP, ushort prsPort)
         {
-            // TODO: FTProtocolClient.FTProtocolClient()
-            // save the PRS server's IP address and port
-            // will be used later to lookup the port for the FT Server when needed
-            
+
+            PrsIP = prsIP;
+            PrsPort = prsPort;
+
         }
 
         public string GetDocument(string serverIP, string documentName)
@@ -42,34 +44,30 @@ namespace SDBrowser
             // serverIP is the FT Server's IP address
             // documentName is the name of a directory on the FT Server
             // both should not be empty
-            
-
+            if (string.IsNullOrWhiteSpace(serverIP) || string.IsNullOrWhiteSpace(documentName))
+            {
+                throw new ArgumentException("Server IP and document name cannot be empty.");
+            }
             // contact the PRS and lookup port for "FT Server"
-            
+            FTClient ftClient = new FTClient(serverIP, PrsIP, PrsPort, "FT Server");
 
             // connect to FT server by ipAddr and port
-            
-
             // create network stream, reader and writer
-            
+            ftClient.Connect();
+
+
 
             // send get message to server for requested directory
-            
-
             // receive files from server, and accumulate in result string
-            
-            
+            ftClient.GetDirectory(documentName);
+
             // send exit
-            
-
             // close writer, reader and network stream
-            
-
             // disconnect from server and close the socket
-            
+            ftClient.Disconnect();
 
             // return the content
-            return "TODO";
+            return "todo: return the result string with all files in the directory\n"; // TODO: replace with actual result string
         }
 
         public void Close()
