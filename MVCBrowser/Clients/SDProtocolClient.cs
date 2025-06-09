@@ -15,6 +15,7 @@ using PRSLib;
 using System.Net;
 using System.Net.Sockets;
 using System.IO;
+using SDLib;
 
 namespace SDBrowser
 {
@@ -31,14 +32,12 @@ namespace SDBrowser
         // represents an open session for a single SD Server
         private class SDSession
         {
-            public string ipAddr;
-            public ushort port;
+            public SDClient client;
             public ulong sessionId;
 
             public SDSession(string ipAddr, ushort port, ulong sessionId)
             {
-                this.ipAddr = ipAddr;
-                this.port = port;
+                client = new SDClient(ipAddr, port);
                 this.sessionId = sessionId;
             }
         }
@@ -86,33 +85,29 @@ namespace SDBrowser
 
             // contact the PRS and lookup port for "SD Server"
             PRSClient prsClient = new PRSClient(prsIP, prsPort);
-            ushort sdPort = prsClient.RequestPort("SD"); // connect to the PRS server
+            PRSMessage pRSMessage = prsClient.LookUpPort("Simple Document (SD) Service"); // connect to the PRS server
 
+            // check if the PRS server returned a valid port for the SD Server
+            if (pRSMessage == null || pRSMessage.Port == 0)
+            {
+                throw new InvalidOperationException("Failed to retrieve port for SD Server from PRS.");
+            }
 
             // connect to SD server by ipAddr and port
             // use OpenOrResumeSession() to ensure session is handled correctly
-            Socket socket = OpenOrResumeSession(serverIP, sdPort);
 
-
-            // create network stream, reader and writer
-            NetworkStream networkStream = new NetworkStream(socket);
-            StreamReader reader = new StreamReader(networkStream, Encoding.UTF8);
-            StreamWriter writer = new StreamWriter(networkStream, Encoding.UTF8) { AutoFlush = true };
+            SDSession session = OpenOrResumeSession(serverIP, pRSMessage.Port);
 
             // send get message to server for requested document
-            
-
             // get the server's response
-
+            string output = session.client.GetDocument(documentName);
 
             // close writer, reader and network stream
-
-
             // disconnect from server and close the socket
-
+            session.client.Disconnect();
 
             // return the content
-            return "TODO";
+            return output;
         }
 
         public void Close()
@@ -130,30 +125,28 @@ namespace SDBrowser
 
         }
 
-        private Socket OpenOrResumeSession(string ipAddr, ushort port)
+        private SDSession OpenOrResumeSession(string ipAddr, ushort port)
         {
-            // TODO: SDProtocolClient.OpenOrResumeSession()
-
-            // create and connect a socket to the given SD Server
             // open or resume a session
-            // leave the socket open and return it for communication to the server
-
-            // connect to the SD Server's IP address and port
-            
-            // create network stream, reader and writer
-            
-            // do we already have a session for this server?
-            // yes, session already open
-            // retrieve the sessionId and send resume message to server
-            // receive response and verify sessionId received
+            // check if we already have a session for this server
+            if (!sessions.ContainsKey(ipAddr))
+            {
+                // no session exists, so create a new one
+                sessions[ipAddr] = new SDSession(ipAddr, port, 0); // sessionId starts at 0
                 
-            // no, session not open for this server
-            // open a new session and save the sessionId
-            // receive response and verify sessionId received
-            // save this open session in the sessions dictionary for later
-            
+                sessions[ipAddr].client.Connect(); // connect to the SD Server
+                sessions[ipAddr].client.OpenSession(); // initialize sessionId to 0
+                sessions[ipAddr].sessionId = sessions[ipAddr].client.SessionID; // get the sessionId from the client
+            }
+            else
+            {
+
+                sessions[ipAddr].client.Connect(); // connect to the SD Server
+                sessions[ipAddr].client.ResumeSession(sessions[ipAddr].sessionId); // initialize sessionId to 0
+            }
+
             // keep the socket open and return it
-            return null;
+            return sessions[ipAddr];
         }
 
         private static void SendOpen(StreamWriter writer)
@@ -236,7 +229,7 @@ namespace SDBrowser
 
             // read from the reader until we've received the expected number of characters
             // accumulate the characters into a string and return those when we got enough
-            
+
 
             return "TODO";
         }

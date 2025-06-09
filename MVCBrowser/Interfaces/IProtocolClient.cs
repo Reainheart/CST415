@@ -15,7 +15,7 @@ namespace SDBrowser
     // classes that implement this interface...
     // implement the protcol used to connect, retrieve and disconnect
 
-    interface IProtocolClient
+    public interface IProtocolClient
     {
         string GetDocument(string serverIP, string documentName);
         void Close();

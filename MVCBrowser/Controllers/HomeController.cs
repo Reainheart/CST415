@@ -5,7 +5,9 @@
 // 
 using FTLib;
 using Microsoft.AspNetCore.Mvc;
+using MVCBrowser.Interfaces;
 using MVCBrowser.Models;
+using SDBrowser;
 using SDLib;
 using System.Diagnostics;
 
@@ -14,9 +16,13 @@ namespace MVCBrowser.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly IContentFetcher _ContentFetcher;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, IContentFetcher fetcher)
         {
+            _ContentFetcher = fetcher ?? throw new ArgumentNullException(nameof(fetcher));
+            _ContentFetcher.AddProtocol("SD", new SDProtocolClient("127.0.0.1", 30000)); // PRS IP and port should be set here
+            _ContentFetcher.AddProtocol("FT", new FTProtocolClient("127.0.0.1", 30000));
             _logger = logger;
         }
 
@@ -43,34 +49,8 @@ namespace MVCBrowser.Controllers
                     model.ResultMessage = "Address and Search Name cannot be empty.";
                     return View(model);
                 }
-                // Validate protocol
-                if (model.Protocol != "SD" && model.Protocol != "FT")
-                {
-                    model.ResultMessage = "Invalid protocol selected.";
-                    return View(model);
-                }
 
-                // Initialize clients based on selected protocol
-                if (model.Protocol == "SD")
-                {
-                    // Initialize SDClient and perform search
-                    SimpleDocumentClient sdClient = new(model.Address, 40000);
-                    sdClient.Connect();
-                    string content = sdClient.GetDocument(model.SearchName.Trim('/'));
-                    model.ResultMessage = $"SD Server returned: {content}";
-                }
-                else if (model.Protocol == "FT")
-                {
-                    // Initialize FTClient and perform search
-                    FTClient ftClient = new(model.Address, "127.0.0.1", 30000, "FTClient");
-                    ftClient.Connect();
-                    ftClient.GetDirectory(model.SearchName.Trim('/'));
-                    model.ResultMessage = $"Downloaded directory '{model.SearchName}' from FT server at {model.Address}.";
-                }
-                else
-                {
-                    model.ResultMessage = "Search complete!"; // or your result
-                }
+                model.ResultMessage = _ContentFetcher.Fetch(model.Protocol, model.Address, model.SearchName);
             }
             catch (Exception ex)
             {

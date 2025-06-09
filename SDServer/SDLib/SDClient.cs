@@ -16,7 +16,7 @@ using System.IO;
 
 namespace SDLib
 {
-    public class SimpleDocumentClient (string SDServerAddress, ushort SDServerPort)
+    public class SDClient (string SDServerAddress, ushort SDServerPort)
     {
         private string SDServerAddress = SDServerAddress;
         private ushort SDServerPort = SDServerPort;
@@ -48,7 +48,25 @@ namespace SDLib
             connected = true;
             Console.WriteLine($"Connected to SD Server at {SDServerAddress}:{SDServerPort}");
         }
+        public void Connect(Socket clientSocket)
+        {
+            // TODO: SDClient.Connect()
 
+            ValidateDisconnected();
+
+            //a clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            // create a client socket and connect to the SD Server's IP address and port
+            clientSocket.Connect(IPAddress.Parse(SDServerAddress), SDServerPort);
+
+            // establish the network stream, reader and writer
+            stream = new NetworkStream(clientSocket);
+            reader = new StreamReader(stream);
+            writer = new StreamWriter(stream);
+
+            // now connected
+            connected = true;
+            Console.WriteLine($"Connected to SD Server at {SDServerAddress}:{SDServerPort}");
+        }
         public void Disconnect()
         {
             // TODO: SDClient.Disconnect()

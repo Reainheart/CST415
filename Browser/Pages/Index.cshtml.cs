@@ -11,7 +11,7 @@ namespace Browser.Pages
 
         // Clients for the two protocols
         private static FTClient? ftClient;
-        private static SimpleDocumentClient? sdClient;
+        private static SDClient? sdClient;
 
         // Config - you can inject these or read from config in a real app
         // Use these to match your FTClient constructor
@@ -37,7 +37,7 @@ namespace Browser.Pages
             }
             if (sdClient == null)
             {
-                sdClient = new SimpleDocumentClient(SDServerAddress, SDServerPort);
+                sdClient = new SDClient(SDServerAddress, SDServerPort);
             }
         }
         public IActionResult OnPostSend(string protocol, string address, string searchName)
@@ -53,7 +53,7 @@ namespace Browser.Pages
                 }
                 else if (protocol == "SD")
                 {
-                    sdClient ??= new SimpleDocumentClient(address, 40000);
+                    sdClient ??= new SDClient(address, 40000);
                     sdClient.Connect();
                     string content = sdClient.GetDocument(searchName);
                     ResultMessage = $"SD Server returned: {content}";

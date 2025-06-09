@@ -8,28 +8,21 @@
 // CST 415
 // Spring 2025
 // 
+using MVCBrowser.Interfaces;
 using System;
 using System.Collections.Generic;
 
 
 namespace SDBrowser
 {
-    class ContentFetcher
+    class ContentFetcher : IContentFetcher
     {
-        private Dictionary<string, IProtocolClient> protocols;  // protocol name --> protocol client instance
-
-        public ContentFetcher()
-        {
-            // TODO: ContentFetcher.ContentFetcher()
-            // initially empty protocols dictionary
-            protocols = new Dictionary<string, IProtocolClient>();
-        }
-
+        public Dictionary<string, IProtocolClient> Protocols = new Dictionary<string, IProtocolClient>();
         public void Close()
         {
             // TODO: ContentFetcher.Close()
             // close each protocol client
-            foreach (var client in protocols.Values)
+            foreach (var client in Protocols.Values)
             {
                 client.Close();
             }
@@ -39,30 +32,27 @@ namespace SDBrowser
         {
             // TODO: ContentFetcher.AddProtocol()
             // save the protocol client under the given name
-            protocols[name] = client; 
+            Protocols[name] = client; 
         }
 
-        public string Fetch(string address)
+        public string Fetch(string type, string address, string resourceName)
         {
-            // TODO: ContentFetcher.Fetch()
-            // parse the address
-            // Address format:
-            //    < type >:< server IP >:< resource >
-            //    Where…
-            //      < type > is one of “SD” and “FT”
-            //      < server IP > is the IP address of the server to contact
-            //      < resource > is the name of the resource to request from the server
-            
+            // check if type is null or empty
+            if (string.IsNullOrWhiteSpace(type) || string.IsNullOrWhiteSpace(address) || string.IsNullOrWhiteSpace(resourceName))
+            {
+                throw new ArgumentException("Type, address, and resource name cannot be empty.");
+            }
 
             // retrieve the correct protocol client for the requested protocol
             // watch out for invalid type
-            
+            if (!Protocols.TryGetValue(type, out IProtocolClient protocolClient))
+            {
+                throw new ArgumentException($"Unknown protocol type: {type}");
+            }
 
             // get the content from the protocol client, using the given IP address and resource name
-            
-            
             // return the content
-            return "TODO";
+            return protocolClient.GetDocument(address, resourceName);
         }
     }
 }
