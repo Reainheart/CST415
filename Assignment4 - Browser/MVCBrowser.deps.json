@@ -1,0 +1,70 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v9.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v9.0": {
+      "MVCBrowser/1.0.0": {
+        "dependencies": {
+          "FTLib": "1.0.0",
+          "PRSLib": "1.0.0",
+          "SDLib": "1.0.0"
+        },
+        "runtime": {
+          "MVCBrowser.dll": {}
+        }
+      },
+      "FTLib/1.0.0": {
+        "dependencies": {
+          "PRSLib": "1.0.0"
+        },
+        "runtime": {
+          "FTLib.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "PRSLib/1.0.0": {
+        "runtime": {
+          "PRSLib.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "SDLib/1.0.0": {
+        "runtime": {
+          "SDLib.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "MVCBrowser/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "FTLib/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "PRSLib/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "SDLib/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

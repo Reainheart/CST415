@@ -20,7 +20,6 @@ namespace SDBrowser
         public Dictionary<string, IProtocolClient> Protocols = new Dictionary<string, IProtocolClient>();
         public void Close()
         {
-            // TODO: ContentFetcher.Close()
             // close each protocol client
             foreach (var client in Protocols.Values)
             {
@@ -30,7 +29,6 @@ namespace SDBrowser
 
         public void AddProtocol(string name, IProtocolClient client)
         {
-            // TODO: ContentFetcher.AddProtocol()
             // save the protocol client under the given name
             Protocols[name] = client; 
         }
